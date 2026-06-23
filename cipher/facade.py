@@ -1,0 +1,1 @@
+# Facade — wysokopoziomowe API (encrypt/decrypt/save/load)

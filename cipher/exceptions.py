@@ -1,0 +1,1 @@
+# własne wyjątki (np. FileHandlerError, BufferError)

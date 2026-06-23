@@ -1,0 +1,1 @@
+# abstrakcyjna klasa Cipher (ABC)
