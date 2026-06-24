@@ -23,18 +23,18 @@ class Rot13Cipher(Cipher):
         """
         rot13_char_list = []
         for char in text:
-            if 97 <= ord(char) <= 122:
-                char_nr = ord(char) - ord('a')
-                rot13_char_nr = (char_nr + 13) % 26
-                rot13_char = chr(rot13_char_nr + ord('a'))
-                rot13_char_list.append(rot13_char)
-            elif 65 <= ord(char) <= 90:
-                char_nr = ord(char) - ord('A')
-                rot13_char_nr = (char_nr + 13) % 26
-                rot13_char = chr(rot13_char_nr + ord('A'))
-                rot13_char_list.append(rot13_char)
+            if ord('a') <= ord(char) <= ord('z'):
+                base = ord('a')
+            elif ord('A') <= ord(char) <= ord('Z'):
+                base = ord('A')
             else:
                 rot13_char_list.append(char)
+                continue
+
+            char_nr = ord(char) - base
+            rot13_char_nr = (char_nr + 13) % 26
+            rot13_char = chr(rot13_char_nr + base)
+            rot13_char_list.append(rot13_char)
 
         return "".join(rot13_char_list)
 
@@ -49,4 +49,7 @@ class Rot13Cipher(Cipher):
         :return: tekst odszyfrowany (oryginał).
         """
         return self.encrypt(text)
+
+#x = Rot13Cipher()
+#x.encrypt("a b")
 
