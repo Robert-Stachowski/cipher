@@ -1,26 +1,13 @@
-"""Implementacja szyfru ROT13.
-
-Konkretna realizacja kontraktu `Cipher` dla wariantu ROT13 —
-przesuwa litery alfabetu łacińskiego o 13 pozycji, pozostawiając
-pozostałe znaki bez zmian.
-"""
+"""Szyfr ROT13 — konkretna implementacja kontraktu Cipher."""
 from .base import Cipher
 
 
 class Rot13Cipher(Cipher):
     """Szyfr ROT13.
-
-    Przesuwa każdą literę ASCII (`a-z`, `A-Z`) o 13 pozycji w obrębie
-    jej zakresu, z zawijaniem (modulo 26). Znaki spoza alfabetu
-    łacińskiego (cyfry, spacje, interpunkcja) pozostają nietknięte.
-    ROT13 jest symetryczny — ponowne zaszyfrowanie odtwarza oryginał.
+    Symetryczny — encrypt i decrypt to ta sama operacja. Działa na literach ASCII, resztę zostawia.
     """
-    def encrypt(self, text: str) -> str:
-        """Szyfruje tekst algorytmem ROT13.
-
-        :param text: tekst wejściowy do zaszyfrowania.
-        :return: tekst z literami przesuniętymi o 13 pozycji.
-        """
+    def _cipher(self, text: str) -> str:
+        """Przesuwa litery ASCII o 13 (mod 26); nie-litery zostawia bez zmian."""
         rot13_char_list = []
         for char in text:
             if ord('a') <= ord(char) <= ord('z'):
@@ -38,18 +25,11 @@ class Rot13Cipher(Cipher):
 
         return "".join(rot13_char_list)
 
+    def encrypt(self, text: str) -> str:
+        """Szyfruje tekst algorytmem ROT13."""
+        return self._cipher(text)
+
     def decrypt(self, text: str) -> str:
-        """Deszyfruje tekst ROT13.
-
-        Dzięki symetrii ROT13 (przesunięcie o 13 w 26-literowym
-        alfabecie) deszyfrowanie jest tożsame z szyfrowaniem, więc
-        deleguje do :meth:`encrypt`.
-
-        :param text: tekst wejściowy do odszyfrowania.
-        :return: tekst odszyfrowany (oryginał).
-        """
-        return self.encrypt(text)
-
-#x = Rot13Cipher()
-#x.encrypt("a b")
+        """Deszyfruje tekst ROT13 (operacja symetryczna do szyfrowania)."""
+        return self._cipher(text)
 
