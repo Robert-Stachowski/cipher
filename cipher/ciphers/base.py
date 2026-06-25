@@ -17,16 +17,10 @@ class Cipher(ABC):
 
     @abstractmethod
     def encrypt(self, text: str) -> str:
-        """Szyfruje podany tekst.
-
-        :param text: tekst wejściowy do przekształcenia.
-        :return: tekst po zaszyfrowaniu.
-        """
+        """Szyfruje podany tekst."""
+        pass
 
     @abstractmethod
     def decrypt(self, text: str) -> str:
-        """Deszyfruje podany tekst.
-
-        :param text: tekst wejściowy do przekształcenia.
-        :return: tekst po odszyfrowaniu.
-        """
+        """Deszyfruje podany tekst."""
+        pass
