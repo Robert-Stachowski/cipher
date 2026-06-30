@@ -1,4 +1,4 @@
-
+"""Facade — wysokopoziomowe API aplikacji: encrypt, decrypt, save, load."""
 from .ciphers.factory import CipherFactory
 from .core.buffer import Buffer
 from .models.text import RotType, Status, Text
@@ -11,6 +11,7 @@ class Facade:
         self._file_handler = file_handler
 
     def encrypt(self, text: str, rot_type: RotType) -> Text:
+        """Szyfruje tekst wybranym ROT-em, zapisuje wynik w buforze i go zwraca."""
         cipher = CipherFactory.create_cipher(rot_type)
         encrypted_text = cipher.encrypt(text)
 
@@ -23,6 +24,7 @@ class Facade:
         return entry
 
     def decrypt(self, text: str, rot_type: RotType) -> Text:
+        """Odszyfrowuje tekst wybranym ROT-em, zapisuje wynik w buforze i go zwraca."""
         cipher = CipherFactory.create_cipher(rot_type)
         decrypted_text = cipher.decrypt(text)
 
@@ -35,9 +37,11 @@ class Facade:
         return entry
 
     def save(self, filename: str) -> None:
+        """Zapisuje całą zawartość bufora do pliku."""
         self._file_handler.save(filename=filename, entries=self._buffer.entries)
 
     def load(self, filename: str) -> None:
+        """Wczytuje wpisy z pliku i dodaje je do bufora."""
         entries = self._file_handler.read(filename=filename)
         for entry in entries:
             self._buffer.add(entry)
