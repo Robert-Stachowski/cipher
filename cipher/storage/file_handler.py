@@ -1,10 +1,13 @@
-from ..models.text import Text, RotType, Status
+"""Warstwa storage: trwałe przechowywanie wpisów bufora w plikach JSON."""
 import json
+from ..models.text import Text, RotType, Status
+from ..exceptions import FileHandlerError
 
 
 class FileHandler:
 
     def save(self, filename: str, entries: list[Text]) -> None:
+        """Dopisuje wpisy do pliku JSON; tworzy plik, jeśli nie istnieje."""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 old = json.load(file)
@@ -12,8 +15,8 @@ class FileHandler:
             old = []
 
         dict_entries = []
-        for enter in entries:
-            dict_entries.append({"text": enter.text, "rot_type": enter.rot_type, "status": enter.status})
+        for entry in entries:
+            dict_entries.append({"text": entry.text, "rot_type": entry.rot_type, "status": entry.status})
 
         new_list = old + dict_entries
 
@@ -22,15 +25,16 @@ class FileHandler:
 
 
     def read(self, filename: str) -> list[Text]:
+        """Wczytuje wpisy z pliku JSON; rzuca FileHandlerError przy braku lub uszkodzeniu pliku."""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 raw_json = json.load(file)
-        except FileNotFoundError as e:
-            raise
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise FileHandlerError(f"Nie znaleziono pliku lub plik jest uszkodzony - '{filename}'") from e
 
-        raw_list =[]
+        raw_list = []
 
-        for enter in raw_json:
-            raw_list.append(Text(enter["text"], RotType(enter["rot_type"]), Status(enter["status"])))
+        for entry in raw_json:
+            raw_list.append(Text(entry["text"], RotType(entry["rot_type"]), Status(entry["status"])))
         return raw_list
 
