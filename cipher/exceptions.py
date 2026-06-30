@@ -1,1 +1,2 @@
-# własne wyjątki (np. FileHandlerError, BufferError)
+class FileHandlerError(Exception):
+    """Błąd operacji wejścia/wyjścia warstwy storage."""
