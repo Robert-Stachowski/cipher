@@ -13,7 +13,7 @@ class Status(StrEnum):
 
 @dataclass(frozen=True)
 class Text:
-    """Niezmienny obiekt-wartość: tekst wraz z jego typem ROT i statusem.""
+    """Niezmienny obiekt-wartość: tekst wraz z jego typem ROT i statusem."""
     text: str
     rot_type: RotType
     status: Status
