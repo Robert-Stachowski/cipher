@@ -45,7 +45,7 @@ But the ciphers are not the point. **The point is *how* it's built.** This proje
 | 🧰 **No `if/elif` dispatch** | Command routing via Python **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
 | 🧬 **Typed domain model** | The encoded text is an immutable `@dataclass` with `Enum`-backed fields. |
 | 💾 **Robust file I/O** | JSON read/write with **append** semantics and explicit, custom exception handling. |
-| ✅ **Tested** | Unit tests for ciphers, factory, buffer, file handler and the facade. |
+| 🚧 **Tests — final step** | A unit-test suite for ciphers, factory, buffer, file handler and facade is the project's closing milestone *(in progress)*. |
 | 🪝 **Automated quality gates** | `black`, `flake8` and `mypy` run on every commit via **pre-commit**. |
 | 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic. |
 
@@ -59,7 +59,7 @@ The golden rule: **dependencies point in one direction only.** The user interfac
 flowchart TD
     A["main.py<br/><i>thin entry point</i>"] --> B["Manager<br/><i>main loop · match/case dispatch</i>"]
     B --> M["Menu<br/><i>renders options · reads input</i>"]
-    B --> F["CipherFacade<br/><i>high-level API</i>"]
+    B --> F["Facade<br/><i>high-level API</i>"]
     F --> C["CipherFactory<br/><i>builds ROT13 / ROT47</i>"]
     F --> BUF["Buffer<br/><i>in-memory session state</i>"]
     F --> S["FileHandler<br/><i>JSON read / write / append</i>"]
@@ -77,7 +77,7 @@ flowchart TD
 
 | Pattern | Where | Why it earns its place |
 |---|---|---|
-| **Facade** | `CipherFacade` | Gives the CLI a single, simple surface (`encrypt`, `decrypt`, `save`, `load`) and hides the wiring between ciphers, buffer and storage. Swap a subsystem → the CLI doesn't change. |
+| **Facade** | `Facade` | Gives the CLI a single, simple surface (`encrypt`, `decrypt`, `save`, `load`) and hides the wiring between ciphers, buffer and storage. Swap a subsystem → the CLI doesn't change. |
 | **Factory Method / Abstract Factory** | `CipherFactory` | Decouples *"which cipher"* from *"how it's built"*. Adding ROT-anything becomes one new class + one registry entry — **no caller touches a conditional**. |
 | **Dataclass (domain model)** | `Text` | The encoded unit (`text`, `rot_type`, `status`) is a typed, self-validating value object — not a loose dict floating through the codebase. |
 | **Structural pattern matching** | `Manager` | Menu routing reads as a clean dispatch table instead of an `if/elif` ladder. |
@@ -152,43 +152,50 @@ python main.py
 
 ### 🕹️ Usage walkthrough
 
-A typical session — encode a couple of words, then flush the buffer to disk:
+A typical session — encode a word, inspect the buffer, then persist it to disk.
+
+> ℹ️ The CLI speaks **Polish**; the transcript below is the program's real output.
 
 ```text
-╔══════════════════════════════╗
-║           CIPHER             ║
-╠══════════════════════════════╣
-║  1 · Encrypt                 ║
-║  2 · Decrypt                 ║
-║  3 · Save buffer to file     ║
-║  4 · Load file into buffer   ║
-║  5 · Show buffer             ║
-║  0 · Exit                    ║
-╚══════════════════════════════╝
-> 1
+======== CIPHER =========
 
-Choose ROT [13 / 47]: 13
-Enter text: Hello, recruiter!
-✔ Encoded → "Uryyb, erpehvgre!"  (stored in buffer)
+1 Szyfruj
+2 Odszyfruj
+3 Zapisz bufor do pliku
+4 Wczytaj plik do bufora
+5 Pokaż bufor
+0 Wyjście
+> 1
+Podaj tekst: Hello, recruiter!
+Wybierz ROT [13 / 47]: 13
+✔ Operacja udana: Uryyb, erpehvgre!  encrypted
+
+# (the menu is redrawn on every loop)
+> 5
+
+── Bufor (1) ─────────────────
+  1. Uryyb, erpehvgre!  rot13  encrypted
 
 > 3
-File name: portfolio
-✔ 1 entry written to portfolio.json   (buffer kept intact)
+Nazwa pliku: portfolio
+✔ Operacja zapisu udana
 ```
 
-**The flow in words:** pick an action → pick a ROT → type your text → the result is wrapped in a `Text` object and pushed to the **buffer**. Repeat freely. Save → the buffer is serialized to JSON (and **not** cleared, so you can keep working). Load → file contents flow back into the buffer.
+**The flow in words:** pick an action → type your text → pick a ROT → the result is wrapped in a `Text` object and pushed to the **buffer**. Repeat freely. Save → the buffer is written to a JSON file under the name you type (**append** semantics; the buffer is **not** cleared, so you can keep working). Load → file contents flow back into the buffer.
 
 ---
 
 ### ✅ Testing & quality
 
 ```bash
-pytest                 # run the unit test suite
+pytest                 # run the unit test suite (in progress — final milestone)
 black .                # format
 flake8                 # lint
 mypy cipher            # static type check
 pre-commit run --all   # everything the commit hook runs
 ```
+
+> 🚧 The whole application is complete; the **unit-test suite is the last milestone and is still being written**, so `pytest` currently reports no collected tests.
 
 Every commit is gated by **pre-commit** running `black` + `flake8` (and `mypy` in CI), so the `main` branch stays green and consistently formatted.
 
@@ -250,7 +257,7 @@ Ale szyfry nie są tu najważniejsze. **Najważniejsze jest *jak* to zostało zb
 | 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
 | 🧬 **Typowany model domeny** | Zakodowany tekst to niemutowalny `@dataclass` z polami opartymi o `Enum`. |
 | 💾 **Solidne I/O plików** | Odczyt/zapis JSON z semantyką **append** i jawną, własną obsługą wyjątków. |
-| ✅ **Przetestowane** | Testy jednostkowe szyfrów, fabryki, bufora, file handlera i fasady. |
+| 🚧 **Testy — ostatni etap** | Zestaw testów jednostkowych szyfrów, fabryki, bufora, file handlera i fasady to domykający kamień milowy projektu *(w toku)*. |
 | 🪝 **Automatyczne bramki jakości** | `black`, `flake8` i `mypy` uruchamiane przy każdym commicie przez **pre-commit**. |
 | 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe. |
 
@@ -264,7 +271,7 @@ Złota zasada: **zależności wskazują tylko w jedną stronę.** Interfejs uży
 flowchart TD
     A["main.py<br/><i>cienki punkt wejścia</i>"] --> B["Manager<br/><i>pętla główna · dispatch match/case</i>"]
     B --> M["Menu<br/><i>renderuje opcje · czyta input</i>"]
-    B --> F["CipherFacade<br/><i>wysokopoziomowe API</i>"]
+    B --> F["Facade<br/><i>wysokopoziomowe API</i>"]
     F --> C["CipherFactory<br/><i>tworzy ROT13 / ROT47</i>"]
     F --> BUF["Buffer<br/><i>stan sesji w pamięci</i>"]
     F --> S["FileHandler<br/><i>JSON odczyt / zapis / append</i>"]
@@ -282,7 +289,7 @@ flowchart TD
 
 | Wzorzec | Gdzie | Dlaczego ma sens |
 |---|---|---|
-| **Facade** | `CipherFacade` | Daje CLI jedną, prostą powierzchnię (`encrypt`, `decrypt`, `save`, `load`) i ukrywa połączenia między szyframi, buforem i pamięcią. Wymiana podsystemu → CLI się nie zmienia. |
+| **Facade** | `Facade` | Daje CLI jedną, prostą powierzchnię (`encrypt`, `decrypt`, `save`, `load`) i ukrywa połączenia między szyframi, buforem i pamięcią. Wymiana podsystemu → CLI się nie zmienia. |
 | **Factory Method / Abstract Factory** | `CipherFactory` | Odsprzęga *„który szyfr"* od *„jak go zbudować"*. Dodanie kolejnego ROT-a to jedna nowa klasa + wpis w rejestrze — **żaden kod wołający nie dotyka warunku**. |
 | **Dataclass (model domeny)** | `Text` | Jednostka zakodowana (`text`, `rot_type`, `status`) to typowany obiekt-wartość, a nie luźny `dict` krążący po kodzie. |
 | **Structural pattern matching** | `Manager` | Routing menu czyta się jak czysta tablica dyspozytorska zamiast drabinki `if/elif`. |
@@ -357,43 +364,48 @@ python main.py
 
 ### 🕹️ Przykładowa sesja
 
-Typowy przebieg — zakoduj kilka słów, a potem zrzuć bufor na dysk:
+Typowy przebieg — zakoduj słowo, podejrzyj bufor, a potem zrzuć go na dysk (poniżej realny output programu):
 
 ```text
-╔══════════════════════════════╗
-║           CIPHER             ║
-╠══════════════════════════════╣
-║  1 · Szyfruj                 ║
-║  2 · Odszyfruj               ║
-║  3 · Zapisz bufor do pliku   ║
-║  4 · Wczytaj plik do bufora  ║
-║  5 · Pokaż bufor             ║
-║  0 · Wyjście                 ║
-╚══════════════════════════════╝
-> 1
+======== CIPHER =========
 
-Wybierz ROT [13 / 47]: 13
+1 Szyfruj
+2 Odszyfruj
+3 Zapisz bufor do pliku
+4 Wczytaj plik do bufora
+5 Pokaż bufor
+0 Wyjście
+> 1
 Podaj tekst: Hello, recruiter!
-✔ Zakodowano → "Uryyb, erpehvgre!"  (zapisano w buforze)
+Wybierz ROT [13 / 47]: 13
+✔ Operacja udana: Uryyb, erpehvgre!  encrypted
+
+# (menu jest przerysowywane w każdej iteracji pętli)
+> 5
+
+── Bufor (1) ─────────────────
+  1. Uryyb, erpehvgre!  rot13  encrypted
 
 > 3
 Nazwa pliku: portfolio
-✔ Zapisano 1 wpis do portfolio.json   (bufor nietknięty)
+✔ Operacja zapisu udana
 ```
 
-**Przepływ słowami:** wybierz akcję → wybierz ROT → wpisz tekst → wynik zostaje opakowany w obiekt `Text` i dodany do **bufora**. Powtarzaj dowolnie. Zapis → bufor jest serializowany do JSON (i **nie** czyszczony, więc możesz pracować dalej). Wczytanie → zawartość pliku wraca do bufora.
+**Przepływ słowami:** wybierz akcję → wpisz tekst → wybierz ROT → wynik zostaje opakowany w obiekt `Text` i dodany do **bufora**. Powtarzaj dowolnie. Zapis → bufor trafia do pliku JSON pod nazwą, którą podasz (semantyka **append**; bufor **nie** jest czyszczony, więc możesz pracować dalej). Wczytanie → zawartość pliku wraca do bufora.
 
 ---
 
 ### ✅ Testy i jakość
 
 ```bash
-pytest                 # uruchom testy jednostkowe
+pytest                 # uruchom testy jednostkowe (w toku — ostatni kamień milowy)
 black .                # formatowanie
 flake8                 # linting
 mypy cipher            # statyczna kontrola typów
 pre-commit run --all   # wszystko, co odpala hook commitowy
 ```
+
+> 🚧 Cała aplikacja jest gotowa; **zestaw testów jednostkowych to ostatni etap i wciąż powstaje**, więc `pytest` na razie nie zbiera żadnych testów.
 
 Każdy commit jest pilnowany przez **pre-commit** uruchamiający `black` + `flake8` (oraz `mypy` w CI), dzięki czemu gałąź `main` zostaje zielona i spójnie sformatowana.
 
