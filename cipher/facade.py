@@ -45,3 +45,7 @@ class Facade:
         entries = self._file_handler.read(filename=filename)
         for entry in entries:
             self._buffer.add(entry)
+
+    @property
+    def buffer_entries(self) -> list[Text]:
+        return self._buffer.entries
