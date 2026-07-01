@@ -1,3 +1,5 @@
+"""Manager — pętla główna CLI: routing wyboru z menu na operacje Facade."""
+
 from .menu import Menu
 from ..models.text import RotType, Text
 from ..facade import Facade
@@ -16,6 +18,7 @@ class Manager:
         self._running = True
 
     def _handle_cipher(self, operation: Callable[[str, RotType], Text]) -> None:
+        """Wspólny przepływ encrypt/decrypt; ``operation`` to metoda Facade wołana na (tekst, ROT)."""
         text = self._menu.read_text()
         raw_rot_type = self._menu.read_rot_type()
         rot_type = self._ROT_MAP.get(raw_rot_type)
@@ -52,6 +55,7 @@ class Manager:
         self._running = False
 
     def run(self) -> None:
+        """Pętla główna: renderuje menu, czyta wybór i uruchamia właściwy handler aż do wyjścia."""
         oper_map = {
             "1": self._handle_encrypt,
             "2": self._handle_decrypt,
