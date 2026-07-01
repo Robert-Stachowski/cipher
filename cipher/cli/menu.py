@@ -3,11 +3,13 @@
 Moduł odpowiada *wyłącznie* za wyświetlanie interfejsu w terminalu oraz
 czytanie surowego wejścia od użytkownika. Nie zna szyfrów, bufora ani
 plików — zgodnie ze złotą zasadą architektury zależności wskazują tylko
-w jedną stronę, a `Menu` jest jej najniższą, niezależną warstwą.
+w jedną stronę, a `Menu` jest jej najniższą warstwą.
 
 Walidacja danych i routing komend należą do `Manager` / `CipherFacade`.
 Tutaj zwracamy surowe stringi i drukujemy gotowe komunikaty.
 """
+from ..models.text import Text
+
 
 class Menu:
     """Renderuje opcje i czyta input z terminala.
@@ -31,33 +33,26 @@ class Menu:
     # ── Renderowanie ─────────────────────────────────────────────────────
 
     def show_main_menu(self) -> None:
-        print(f"\n======== CIPHER =========\n")
+        print("\n======== CIPHER =========\n")
         for key, label in self._OPTIONS:
             print(key, label)
 
-    def show_buffer(self, entries: list[str]) -> None:
-        """Wyświetla zawartość bufora albo informację, że jest pusty"""
-        if not entries:
-            self.show_info("Bufor jest pusty.")
-            return
-
+    def show_buffer(self, entries: list[Text]) -> None:
+        """Wyświetla zawartość bufora"""
         print(f"\n── Bufor ({len(entries)}) ─────────────────")
         for index, entry in enumerate(entries, start=1):
-            print(f"  {index}. {entry}")
+            print(f"  {index}. {entry.text}  {entry.rot_type}  {entry.status}")
         print()
 
     # ── Komunikaty ───────────────────────────────────────────────────────
 
     def show_success(self, message: str) -> None:
-        """Drukuje komunikat o powodzeniu."""
         print(f"✔ {message}")
 
     def show_error(self, message: str) -> None:
-        """Drukuje komunikat o błędzie."""
         print(f"✖ {message}")
 
     def show_info(self, message: str) -> None:
-        """Drukuje komunikat informacyjny."""
         print(f"ℹ {message}")
 
     # ── Wejście ──────────────────────────────────────────────────────────
@@ -71,14 +66,8 @@ class Menu:
         return input("Wybierz ROT [13 / 47]: ").strip()
 
     def read_text(self) -> str:
-        """Pyta o tekst do zakodowania/odkodowania."""
         return input("Podaj tekst: ")
 
     def read_filename(self) -> str:
         """Pyta o nazwę pliku (bez rozszerzenia)."""
         return input("Nazwa pliku: ").strip()
-
-
-if __name__ == "__main__":
-    m = Menu()
-    m.show_main_menu()
