@@ -9,8 +9,7 @@ class Buffer:
 
     @property
     def entries(self) -> list[Text]:
-        return self._buffer_list[:]
+        return self._buffer_list[:]  # kopia: getter nie może być furtką do mutacji stanu
 
-    def is_empty(self) -> bool:
-        return not self._buffer_list
+
     
