@@ -1,5 +1,6 @@
 """Warstwa storage: trwałe przechowywanie wpisów bufora w plikach JSON."""
 import json
+from dataclasses import asdict
 from ..models.text import Text, RotType, Status
 from ..exceptions import FileHandlerError
 
@@ -16,7 +17,7 @@ class FileHandler:
 
         dict_entries = []
         for entry in entries:
-            dict_entries.append({"text": entry.text, "rot_type": entry.rot_type, "status": entry.status})
+            dict_entries.append(asdict(entry))
 
         new_list = old + dict_entries
 
@@ -35,6 +36,7 @@ class FileHandler:
         raw_list = []
 
         for entry in raw_json:
-            raw_list.append(Text(entry["text"], RotType(entry["rot_type"]), Status(entry["status"])))
+            text, rot_type, status = entry["text"], entry["rot_type"], entry["status"]
+            raw_list.append(Text(text, rot_type, status))
         return raw_list
 
