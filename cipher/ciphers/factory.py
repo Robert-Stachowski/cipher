@@ -7,15 +7,15 @@ from .base import Cipher
 
 
 class CipherFactory:
-    """Mapuje RotType na współdzieloną instancję Cipher."""
-    
+    """Mapuje RotType na klasę Cipher."""
+
     _ciphers_map = {
-        RotType.ROT13: Rot13Cipher(),
-        RotType.ROT47: Rot47Cipher()
+        RotType.ROT13: Rot13Cipher,
+        RotType.ROT47: Rot47Cipher,
     }
 
     @classmethod
     def create_cipher(cls, rot_type: RotType) -> Cipher:
-        """Zwraca szyfr odpowiadający podanemu typowi ROT."""
-        return cls._ciphers_map[rot_type]
+        """Tworzy szyfr (Cipher) właściwy dla podanego typu ROT."""
+        return cls._ciphers_map[rot_type]()
 
