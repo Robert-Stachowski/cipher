@@ -3,12 +3,16 @@
 Moduł odpowiada *wyłącznie* za wyświetlanie interfejsu w terminalu oraz
 czytanie surowego wejścia od użytkownika. Nie zna szyfrów, bufora ani
 plików — zgodnie ze złotą zasadą architektury zależności wskazują tylko
-w jedną stronę, a `Menu` jest jej najniższą warstwą.
+w jedną stronę, a `Menu` jest jej najniższą niezależną warstwą.
 
 Walidacja danych i routing komend należą do `Manager` / `CipherFacade`.
 Tutaj zwracamy surowe stringi i drukujemy gotowe komunikaty.
 """
-from ..models.text import Text
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from ..models.text import Text
 
 
 class Menu:
@@ -37,7 +41,7 @@ class Menu:
         for key, label in self._OPTIONS:
             print(key, label)
 
-    def show_buffer(self, entries: list[Text]) -> None:
+    def show_buffer(self, entries: list["Text"]) -> None:
         """Wyświetla zawartość bufora"""
         print(f"\n── Bufor ({len(entries)}) ─────────────────")
         for index, entry in enumerate(entries, start=1):
