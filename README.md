@@ -7,12 +7,7 @@
 <br>
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=for-the-badge)](https://github.com/psf/black)
-[![Linter: flake8](https://img.shields.io/badge/linter-flake8-4B8BBE?style=for-the-badge)](https://flake8.pycqa.org/)
-[![Typing: mypy](https://img.shields.io/badge/typing-mypy-2A6DB2?style=for-the-badge)](https://mypy-lang.org/)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-FAB040?style=for-the-badge&logo=pre-commit&logoColor=black)](https://pre-commit.com/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?style=for-the-badge&logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
-[![Tests: pytest](https://img.shields.io/badge/tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 
 <br>
 
@@ -45,8 +40,8 @@ But the ciphers are not the point. **The point is *how* it's built.** This proje
 | 🧰 **No `if/elif` dispatch** | Command routing via Python **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
 | 🧬 **Typed domain model** | The encoded text is an immutable `@dataclass` with `Enum`-backed fields. |
 | 💾 **Robust file I/O** | JSON read/write with **append** semantics and explicit, custom exception handling. |
-| 🚧 **Tests — final step** | A unit-test suite for ciphers, factory, buffer, file handler and facade is the project's closing milestone *(in progress)*. |
-| 🪝 **Automated quality gates** | `black`, `flake8` and `mypy` run on every commit via **pre-commit**. |
+| 🚧 **Tests — final step** | A unit-test suite for ciphers, factory, buffer, file handler and facade is the project's closing milestone *(planned — not started)*. |
+| 🪝 **Quality gates** *(planned)* | `black`, `flake8` and `mypy` via **pre-commit** — a tooling milestone, not yet wired up. |
 | 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic. |
 
 ---
@@ -90,8 +85,8 @@ flowchart TD
 Cipher/
 ├── main.py                     # single entry point  →  python main.py
 ├── README.md
-├── pyproject.toml              # project metadata + black / flake8 / mypy config
-├── .pre-commit-config.yaml
+├── pyproject.toml              # ⏳ planned — metadata + black / flake8 / mypy config
+├── .pre-commit-config.yaml     # ⏳ planned
 ├── .gitignore
 │
 ├── cipher/                     # application package
@@ -117,12 +112,8 @@ Cipher/
 │       ├── menu.py             # 🖥️ Menu — presentation & input
 │       └── manager.py          # 🎮 Manager — main loop + match/case dispatch
 │
-└── tests/                      # ✅ unit tests
-    ├── test_ciphers.py
-    ├── test_factory.py
-    ├── test_buffer.py
-    ├── test_file_handler.py
-    └── test_facade.py
+└── tests/                      # ⏳ planned — unit test suite (final milestone)
+    └── __init__.py             # only the package placeholder exists today
 ```
 
 > 💡 The file-storage package is intentionally named `storage`, **not** `io`, to avoid shadowing Python's standard-library `io` module — a small detail that signals attention to the things that bite teams later.
@@ -140,9 +131,8 @@ cd Cipher
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# 3 · install dev tooling
-pip install -r requirements-dev.txt   # or: pip install -e ".[dev]"
-pre-commit install
+# 3 · (optional) dev tooling — ⏳ planned, not in the repo yet:
+#   pip install -e ".[dev]" && pre-commit install
 
 # 4 · run
 python main.py
@@ -188,16 +178,16 @@ Nazwa pliku: portfolio
 ### ✅ Testing & quality
 
 ```bash
-pytest                 # run the unit test suite (in progress — final milestone)
+pytest                 # unit tests — ⏳ planned, not configured yet (final milestone)
 black .                # format
 flake8                 # lint
 mypy cipher            # static type check
 pre-commit run --all   # everything the commit hook runs
 ```
 
-> 🚧 The whole application is complete; the **unit-test suite is the last milestone and is still being written**, so `pytest` currently reports no collected tests.
+> 🚧 The application itself is complete. The **unit-test suite and the tooling above (`black`/`flake8`/`mypy`/`pre-commit`) are the final milestone and aren't set up yet**, so the commands above won't run against the repo as-is.
 
-Every commit is gated by **pre-commit** running `black` + `flake8` (and `mypy` in CI), so the `main` branch stays green and consistently formatted.
+No automated gates run in the repo yet. Once the tooling milestone lands, every commit will be gated by **pre-commit** (`black` + `flake8`, with `mypy` in CI). For now, the discipline on show lives in the **architecture** and the **commit history**.
 
 ---
 
@@ -205,8 +195,8 @@ Every commit is gated by **pre-commit** running `black` + `flake8` (and `mypy` i
 
 This repo follows the same disciplines I'd bring to a production codebase:
 
-- **PEP 8** style, enforced — not just suggested — by `black` + `flake8`.
-- **Full type hints**, checked with **mypy**. Docstrings on public classes and methods.
+- **PEP 8** style — the code follows it; automated enforcement by `black` + `flake8` is a planned milestone.
+- **Full type hints** on every module. Docstrings on public classes and methods. (`mypy` verification is part of the planned tooling.)
 - **GitHub Flow** — short-lived feature branches, reviewed before merge.
 - **[Conventional Commits](https://www.conventionalcommits.org/)** with scopes:
 
@@ -222,7 +212,9 @@ This repo follows the same disciplines I'd bring to a production codebase:
 
 ### 🧰 Tech stack
 
-**Python 3.11+** · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **pytest** · **black** · **flake8** · **mypy** · **pre-commit** · GitHub Actions *(optional CI)*
+**Used —** Python 3.11+ · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **zero runtime dependencies (standard library only)**.
+
+**Planned tooling —** pytest · black · flake8 · mypy · pre-commit · GitHub Actions (CI).
 
 ---
 
@@ -257,8 +249,8 @@ Ale szyfry nie są tu najważniejsze. **Najważniejsze jest *jak* to zostało zb
 | 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
 | 🧬 **Typowany model domeny** | Zakodowany tekst to niemutowalny `@dataclass` z polami opartymi o `Enum`. |
 | 💾 **Solidne I/O plików** | Odczyt/zapis JSON z semantyką **append** i jawną, własną obsługą wyjątków. |
-| 🚧 **Testy — ostatni etap** | Zestaw testów jednostkowych szyfrów, fabryki, bufora, file handlera i fasady to domykający kamień milowy projektu *(w toku)*. |
-| 🪝 **Automatyczne bramki jakości** | `black`, `flake8` i `mypy` uruchamiane przy każdym commicie przez **pre-commit**. |
+| 🚧 **Testy — ostatni etap** | Zestaw testów jednostkowych szyfrów, fabryki, bufora, file handlera i fasady to domykający kamień milowy projektu *(planowane — nierozpoczęte)*. |
+| 🪝 **Bramki jakości** *(planowane)* | `black`, `flake8` i `mypy` przez **pre-commit** — etap tooling, jeszcze nie podpięty. |
 | 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe. |
 
 ---
@@ -302,8 +294,8 @@ flowchart TD
 Cipher/
 ├── main.py                     # jedyny punkt wejścia  →  python main.py
 ├── README.md
-├── pyproject.toml              # metadane + konfiguracja black / flake8 / mypy
-├── .pre-commit-config.yaml
+├── pyproject.toml              # ⏳ planowane — metadane + konfiguracja black / flake8 / mypy
+├── .pre-commit-config.yaml     # ⏳ planned
 ├── .gitignore
 │
 ├── cipher/                     # pakiet aplikacji
@@ -329,12 +321,8 @@ Cipher/
 │       ├── menu.py             # 🖥️ Menu — prezentacja i input
 │       └── manager.py          # 🎮 Manager — pętla główna + dispatch match/case
 │
-└── tests/                      # ✅ testy jednostkowe
-    ├── test_ciphers.py
-    ├── test_factory.py
-    ├── test_buffer.py
-    ├── test_file_handler.py
-    └── test_facade.py
+└── tests/                      # ⏳ planowane — testy jednostkowe (ostatni etap)
+    └── __init__.py             # dziś istnieje tylko placeholder pakietu
 ```
 
 > 💡 Pakiet od plików nazwałem celowo `storage`, a **nie** `io`, żeby nie przykryć standardowego modułu `io` z biblioteki Pythona — drobiazg, który świadczy o uwadze do rzeczy, które potrafią ugryźć zespół później.
@@ -352,9 +340,8 @@ cd Cipher
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# 3 · zainstaluj narzędzia deweloperskie
-pip install -r requirements-dev.txt   # lub: pip install -e ".[dev]"
-pre-commit install
+# 3 · (opcjonalnie) tooling deweloperski — ⏳ planowany, jeszcze nie ma go w repo:
+#   pip install -e ".[dev]" && pre-commit install
 
 # 4 · uruchom
 python main.py
@@ -398,16 +385,16 @@ Nazwa pliku: portfolio
 ### ✅ Testy i jakość
 
 ```bash
-pytest                 # uruchom testy jednostkowe (w toku — ostatni kamień milowy)
+pytest                 # testy jednostkowe — ⏳ planowane, jeszcze nieskonfigurowane (ostatni etap)
 black .                # formatowanie
 flake8                 # linting
 mypy cipher            # statyczna kontrola typów
 pre-commit run --all   # wszystko, co odpala hook commitowy
 ```
 
-> 🚧 Cała aplikacja jest gotowa; **zestaw testów jednostkowych to ostatni etap i wciąż powstaje**, więc `pytest` na razie nie zbiera żadnych testów.
+> 🚧 Sama aplikacja jest gotowa. **Zestaw testów oraz tooling powyżej (`black`/`flake8`/`mypy`/`pre-commit`) to ostatni etap i nie są jeszcze skonfigurowane**, więc powyższe komendy nie zadziałają na repo w obecnym stanie.
 
-Każdy commit jest pilnowany przez **pre-commit** uruchamiający `black` + `flake8` (oraz `mypy` w CI), dzięki czemu gałąź `main` zostaje zielona i spójnie sformatowana.
+W repo nie działają jeszcze żadne automatyczne bramki. Gdy domknę etap tooling, każdy commit będzie pilnowany przez **pre-commit** (`black` + `flake8`, z `mypy` w CI). Na razie widoczna dyscyplina siedzi w **architekturze** i **historii commitów**.
 
 ---
 
@@ -415,8 +402,8 @@ Każdy commit jest pilnowany przez **pre-commit** uruchamiający `black` + `flak
 
 To repo trzyma się tych samych dyscyplin, które wniósłbym do kodu produkcyjnego:
 
-- Styl **PEP 8**, wymuszany — nie tylko sugerowany — przez `black` + `flake8`.
-- **Pełne typowanie**, sprawdzane przez **mypy**. Docstringi na publicznych klasach i metodach.
+- Styl **PEP 8** — kod się go trzyma; automatyczne wymuszanie przez `black` + `flake8` to planowany etap.
+- **Pełne typowanie** w każdym module. Docstringi na publicznych klasach i metodach. (Weryfikacja `mypy` to część planowanego toolingu.)
 - **GitHub Flow** — krótkożyjące gałęzie feature'owe, recenzowane przed mergem.
 - **[Conventional Commits](https://www.conventionalcommits.org/)** ze scope'ami:
 
@@ -432,7 +419,9 @@ To repo trzyma się tych samych dyscyplin, które wniósłbym do kodu produkcyjn
 
 ### 🧰 Stack technologiczny
 
-**Python 3.11+** · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **pytest** · **black** · **flake8** · **mypy** · **pre-commit** · GitHub Actions *(opcjonalne CI)*
+**Używane —** Python 3.11+ · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **zero zależności runtime (tylko biblioteka standardowa)**.
+
+**Planowany tooling —** pytest · black · flake8 · mypy · pre-commit · GitHub Actions (CI).
 
 ---
 
