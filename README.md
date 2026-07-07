@@ -295,7 +295,7 @@ Cipher/
 ├── main.py                     # jedyny punkt wejścia  →  python main.py
 ├── README.md
 ├── pyproject.toml              # ⏳ planowane — metadane + konfiguracja black / flake8 / mypy
-├── .pre-commit-config.yaml     # ⏳ planned
+├── .pre-commit-config.yaml     # ⏳ planowane
 ├── .gitignore
 │
 ├── cipher/                     # pakiet aplikacji
