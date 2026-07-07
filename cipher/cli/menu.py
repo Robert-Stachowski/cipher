@@ -5,7 +5,7 @@ czytanie surowego wejścia od użytkownika. Nie zna szyfrów, bufora ani
 plików — zgodnie ze złotą zasadą architektury zależności wskazują tylko
 w jedną stronę, a `Menu` jest jej najniższą niezależną warstwą.
 
-Walidacja danych i routing komend należą do `Manager` / `CipherFacade`.
+Walidacja danych i routing komend należą do `Manager` / `Facade`.
 Tutaj zwracamy surowe stringi i drukujemy gotowe komunikaty.
 """
 from typing import TYPE_CHECKING
