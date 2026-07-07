@@ -1,7 +1,7 @@
 from ..models.text import Text
 
 class Buffer:
-    def __init__(self):
+    def __init__(self) -> None:
         self._buffer_list = []
 
     def add(self, text_obj: Text) -> None:
