@@ -1,10 +1,11 @@
 """Manager — pętla główna CLI: routing wyboru z menu na operacje Facade."""
 
+from collections.abc import Callable
 from .menu import Menu
 from ..models.text import RotType, Text
 from ..facade import Facade
 from ..exceptions import FileHandlerError
-from collections.abc import Callable
+
 
 class Manager:
     _ROT_MAP: dict[str, RotType] = {
@@ -20,6 +21,9 @@ class Manager:
     def _handle_cipher(self, operation: Callable[[str, RotType], Text]) -> None:
         """Wspólny przepływ encrypt/decrypt; ``operation`` to metoda Facade wołana na (tekst, ROT)."""
         text = self._menu.read_text()
+        if not text.strip():
+            self._menu.show_error("Tekst nie może być pusty")
+            return
         raw_rot_type = self._menu.read_rot_type()
         rot_type = self._ROT_MAP.get(raw_rot_type)
         if rot_type is None:
@@ -36,11 +40,17 @@ class Manager:
 
     def _handle_save(self) -> None:
         filename = self._menu.read_filename()
+        if not filename.strip():
+            self._menu.show_error("Nazwa pliku nie może być pusta")
+            return
         self._facade.save(filename)
         self._menu.show_success("Operacja zapisu udana")
 
     def _handle_load(self) -> None:
         filename = self._menu.read_filename()
+        if not filename.strip():
+            self._menu.show_error("Nazwa pliku nie może być pusta")
+            return
         self._facade.load(filename)
         self._menu.show_success("Operacja odczytu udana")
 
