@@ -14,6 +14,34 @@ def test_save_file_happy_path(tmp_path):
 
     assert [test_obj_1] == file_read
 
+def test_save_directory(tmp_path):
+    test_obj_11 = Text("test_name", RotType.ROT13, Status.ENCRYPTED)
+    test_path = tmp_path
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.save(str(test_path), [test_obj_11])
+
+def test_save_invalid_json(tmp_path):
+    test_path = tmp_path / "test_save.json"
+    test_content = '[{"text": "blablabla", "rot_type": "rot13, "status": "encrypted"]'
+    test_path.write_text(test_content, encoding="utf-8")
+    test_obj_22 = Text("test_name", RotType.ROT13, Status.ENCRYPTED)
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.save(str(test_path), [test_obj_22])
+
+def test_correct_json_not_list(tmp_path):
+    test_path = tmp_path / "test_not_list.json"
+    test_content = '{"text": "blablabla", "rot_type": "rot13", "status": "encrypted"}'
+    test_path.write_text(test_content, encoding="utf-8")
+    test_obj_22 = Text("test_object", RotType.ROT13, Status.ENCRYPTED)
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.save(str(test_path), [test_obj_22])
+
 def test_read_returns_enum_types(tmp_path):
     test_obj_2 = Text("test_second", RotType.ROT13, Status.ENCRYPTED)
     test_path = tmp_path/"entries_second.json"
