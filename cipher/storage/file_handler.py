@@ -8,12 +8,17 @@ from ..exceptions import FileHandlerError
 class FileHandler:
 
     def save(self, filename: str, entries: list[Text]) -> None:
-        """Dopisuje wpisy do pliku JSON; tworzy plik, jeśli nie istnieje."""
+        """Dopisuje wpisy do pliku JSON; tworzy plik, jeśli nie istnieje,
+        rzuca FileHandlerError w przypadku uszkodzonego pliku, oraz niepoprawnej struktury danych"""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 old = json.load(file)
         except FileNotFoundError:
             old = []
+        except (OSError, json.JSONDecodeError) as e:
+            raise FileHandlerError(f"Nie udało się odczytać pliku - '{filename}'") from e
+        if not isinstance(old, list):
+            raise FileHandlerError(f"Niepoprawna struktura pliku - '{filename}' - {type(old).__name__}")
 
         dict_entries = []
         for entry in entries:
@@ -26,12 +31,13 @@ class FileHandler:
 
 
     def read(self, filename: str) -> list[Text]:
-        """Wczytuje wpisy z pliku JSON; rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
+        """Wczytuje wpisy z pliku JSON;
+        rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 raw_json = json.load(file)
         except (OSError, json.JSONDecodeError) as e:
-            raise FileHandlerError(f"Nie udało sie odczytać pliku - '{filename}'") from e
+            raise FileHandlerError(f"Nie udało się odczytać pliku - '{filename}'") from e
 
         raw_list = []
         try:
