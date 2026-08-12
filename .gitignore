@@ -222,3 +222,5 @@ scope.md
 scope2.md
 .idea/
 blabla.py
+test_blabla.py
+test_mock/
