@@ -26,18 +26,18 @@ class FileHandler:
 
 
     def read(self, filename: str) -> list[Text]:
-        """Wczytuje wpisy z pliku JSON; rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości"""
+        """Wczytuje wpisy z pliku JSON; rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 raw_json = json.load(file)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            raise FileHandlerError(f"Nie znaleziono pliku lub plik jest uszkodzony - '{filename}'") from e
+        except (OSError, json.JSONDecodeError) as e:
+            raise FileHandlerError(f"Nie udało sie odczytać pliku - '{filename}'") from e
 
         raw_list = []
         try:
             for entry in raw_json:
                 text, rot_type, status = entry["text"], entry["rot_type"], entry["status"]
                 raw_list.append(Text(text, RotType(rot_type), Status(status)))
-        except ValueError as e:
-            raise FileHandlerError(f"Nieznana wartość: {filename} - {e}") from e
+        except (ValueError, KeyError) as e:
+            raise FileHandlerError(f"Nieznana wartość, lub brak klucza: {filename} - {e}") from e
         return raw_list
