@@ -7,16 +7,24 @@ from ..exceptions import FileHandlerError
 
 class FileHandler:
 
+    @staticmethod
+    def _load_raw_json(filename: str, missing_ok: bool = False) -> list | dict:
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            if missing_ok:
+                return []
+            raise FileHandlerError(f"Nie znaleziono pliku - '{filename}'")
+        except (OSError, json.JSONDecodeError) as e:
+            raise FileHandlerError(f"Nie udało się odczytać pliku - '{filename}'") from e
+
+
     def save(self, filename: str, entries: list[Text]) -> None:
         """Dopisuje wpisy do pliku JSON; tworzy plik, jeśli nie istnieje,
         rzuca FileHandlerError w przypadku uszkodzonego pliku, oraz niepoprawnej struktury danych"""
-        try:
-            with open(filename, "r", encoding="utf-8") as file:
-                old = json.load(file)
-        except FileNotFoundError:
-            old = []
-        except (OSError, json.JSONDecodeError) as e:
-            raise FileHandlerError(f"Nie udało się odczytać pliku - '{filename}'") from e
+        old = self._load_raw_json(filename, missing_ok=True)
+
         if not isinstance(old, list):
             raise FileHandlerError(f"Niepoprawna struktura pliku - '{filename}' - {type(old).__name__}")
 
@@ -33,11 +41,7 @@ class FileHandler:
     def read(self, filename: str) -> list[Text]:
         """Wczytuje wpisy z pliku JSON;
         rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
-        try:
-            with open(filename, "r", encoding="utf-8") as file:
-                raw_json = json.load(file)
-        except (OSError, json.JSONDecodeError) as e:
-            raise FileHandlerError(f"Nie udało się odczytać pliku - '{filename}'") from e
+        raw_json = self._load_raw_json(filename)
 
         raw_list = []
         try:
