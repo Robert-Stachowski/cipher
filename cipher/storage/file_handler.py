@@ -3,6 +3,7 @@ import json
 from dataclasses import asdict
 from ..models.text import Text, RotType, Status
 from ..exceptions import FileHandlerError
+from typing import Any
 
 
 class FileHandler:
@@ -43,11 +44,14 @@ class FileHandler:
         rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
         raw_json = self._load_raw_json(filename)
 
+        if not isinstance(raw_json, list):
+            raise FileHandlerError(f"Niepoprawna struktura pliku - {filename} - {type(raw_json).__name__}")
+
         raw_list = []
         try:
             for entry in raw_json:
                 text, rot_type, status = entry["text"], entry["rot_type"], entry["status"]
                 raw_list.append(Text(text, RotType(rot_type), Status(status)))
-        except (ValueError, KeyError) as e:
+        except (ValueError, KeyError, TypeError) as e:
             raise FileHandlerError(f"Nieznana wartość, lub brak klucza: {filename} - {e}") from e
         return raw_list

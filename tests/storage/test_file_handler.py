@@ -3,8 +3,6 @@ from cipher.models.text import Text, RotType, Status
 from cipher.exceptions import FileHandlerError
 import pytest
 
-
-
 def test_save_file_happy_path(tmp_path):
     test_obj_1 = Text("test_name", RotType.ROT13, Status.ENCRYPTED)
     test_path =  tmp_path/"entries.json"
@@ -115,3 +113,21 @@ def test_polish_char(tmp_path):
     read_data = test_path.read_text(encoding="utf-8")
 
     assert "żźćńóąę" in read_data
+
+def test_read_root_not_list(tmp_path):
+    test_path = tmp_path / "test_not_list.json"
+    test_content = '{"text": "blablabla", "rot_type": "rot13", "status": "encrypted"}'
+    test_path.write_text(test_content, encoding="utf-8")
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.read(str(test_path))
+
+def test_read_entry_not_dict(tmp_path):
+    test_path = tmp_path / "test_entry_not_dict.json"
+    test_content = '[1,2,3]'
+    test_path.write_text(test_content, encoding="utf-8")
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.read(str(test_path))
