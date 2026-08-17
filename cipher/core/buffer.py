@@ -10,6 +10,5 @@ class Buffer:
 
     @property
     def entries(self) -> list[Text]:
-        return self._buffer_list[
-            :
-        ]  # kopia: getter nie może być furtką do mutacji stanu
+        # kopia: getter nie może być furtką do mutacji stanu
+        return self._buffer_list[:]
