@@ -1,14 +1,16 @@
 """Szyfr ROT47 - konkretna implementacja kontraktu Cipher"""
+
 from .base import Cipher
 
 
 class Rot47Cipher(Cipher):
     """Szyfr ROT47.
-       Symetryczny — encrypt i decrypt to ta sama operacja.
-       Działa na literach, cyfrach i znakach specjalnych ASCII, resztę zostawia.
+    Symetryczny — encrypt i decrypt to ta sama operacja.
+    Działa na literach, cyfrach i znakach specjalnych ASCII, resztę zostawia.
     """
+
     def _cipher(self, text: str) -> str:
-        """Przesuwa cały zakres drukowalnego ASCII o 47 (mod 94) """
+        """Przesuwa cały zakres drukowalnego ASCII o 47 (mod 94)"""
         rot47_char_list = []
         for char in text:
             if ord("!") <= ord(char) <= ord("~"):

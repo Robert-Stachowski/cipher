@@ -8,8 +8,8 @@ w jedną stronę, a `Menu` jest jej najniższą niezależną warstwą.
 Walidacja danych i routing komend należą do `Manager` / `Facade`.
 Tutaj zwracamy surowe stringi i drukujemy gotowe komunikaty.
 """
-from typing import TYPE_CHECKING
 
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..models.text import Text

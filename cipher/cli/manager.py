@@ -1,17 +1,16 @@
 """Manager — pętla główna CLI: routing wyboru z menu na operacje Facade."""
 
 from collections.abc import Callable
-from .menu import Menu
-from ..models.text import RotType, Text
-from ..facade import Facade
+from typing import ClassVar
+
 from ..exceptions import FileHandlerError
+from ..facade import Facade
+from ..models.text import RotType, Text
+from .menu import Menu
 
 
 class Manager:
-    _ROT_MAP: dict[str, RotType] = {
-        "13": RotType.ROT13,
-        "47": RotType.ROT47
-    }
+    _ROT_MAP: ClassVar[dict[str, RotType]] = {"13": RotType.ROT13, "47": RotType.ROT47}
 
     def __init__(self, menu: Menu, facade: Facade) -> None:
         self._menu = menu
@@ -72,7 +71,7 @@ class Manager:
             "3": self._handle_save,
             "4": self._handle_load,
             "5": self._handle_show_buffer,
-            "0": self._handle_exit
+            "0": self._handle_exit,
         }
         while self._running:
             self._menu.show_main_menu()

@@ -1,5 +1,5 @@
 from cipher.core.buffer import Buffer
-from cipher.models.text import Text, RotType, Status
+from cipher.models.text import RotType, Status, Text
 
 
 def test_add_preserves_order():
@@ -27,4 +27,3 @@ def test_clearing_entries_does_not_clear_buffer():
 
     assert len(buffer.entries) == 1
     assert obj in buffer.entries
-

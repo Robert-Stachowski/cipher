@@ -1,9 +1,11 @@
 import sys
-from cipher.core.buffer import Buffer
-from cipher.facade import Facade
+
 from cipher.cli.manager import Manager
 from cipher.cli.menu import Menu
+from cipher.core.buffer import Buffer
+from cipher.facade import Facade
 from cipher.storage.file_handler import FileHandler
+
 
 def main() -> None:
     buffer = Buffer()
@@ -14,6 +16,6 @@ def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     manager.run()
 
+
 if __name__ == "__main__":
     main()
-    

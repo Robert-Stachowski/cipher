@@ -4,6 +4,7 @@ Definiuje interfejs `Cipher`, który implementują konkretne
 szyfry (ROT13, ROT47). Warstwa odpowiada wyłącznie za
 przekształcanie tekstu — nie wie nic o buforze, plikach ani menu.
 """
+
 from abc import ABC, abstractmethod
 
 
@@ -18,9 +19,7 @@ class Cipher(ABC):
     @abstractmethod
     def encrypt(self, text: str) -> str:
         """Szyfruje podany tekst."""
-        pass
 
     @abstractmethod
     def decrypt(self, text: str) -> str:
         """Deszyfruje podany tekst."""
-        pass

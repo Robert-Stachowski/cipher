@@ -1,7 +1,5 @@
-import pytest
 from cipher.cli.manager import Manager
 from cipher.models.text import RotType, Status, Text
-
 
 
 class FakeMenu:
@@ -9,6 +7,7 @@ class FakeMenu:
         self._choices = choices or []
         self.infos = []
         self.shown_buffer = None
+        self.errors = []
 
     def show_main_menu(self):
         pass
@@ -21,6 +20,9 @@ class FakeMenu:
 
     def show_buffer(self, entries: list[Text]):
         self.shown_buffer = entries
+
+    def show_error(self, message: str):
+        self.errors.append(message)
 
 
 class FakeFacade:
@@ -35,6 +37,7 @@ def test_show_buffer_when_empty():
 
     assert menu.infos == ["Pusta pamięć"]
 
+
 def test_show_buffer_eq_entries():
     entries = [
         Text("test_text", RotType.ROT13, Status.ENCRYPTED),
@@ -47,3 +50,11 @@ def test_show_buffer_eq_entries():
 
     assert menu.shown_buffer == entries
     assert menu.infos == []
+
+
+def test_invalid_menu_choice_shows_error():
+    menu = FakeMenu(["9", "0"])
+    manager = Manager(menu, FakeFacade([]))
+    manager.run()
+
+    assert menu.errors == ["Niepoprawny wybór"]

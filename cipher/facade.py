@@ -1,4 +1,5 @@
 """Facade — wysokopoziomowe API aplikacji: encrypt, decrypt, save, load."""
+
 from .ciphers.factory import CipherFactory
 from .core.buffer import Buffer
 from .models.text import RotType, Status, Text
@@ -15,11 +16,7 @@ class Facade:
         cipher = CipherFactory.create_cipher(rot_type)
         encrypted_text = cipher.encrypt(text)
 
-        entry = Text(
-            text=encrypted_text,
-            rot_type=rot_type,
-            status=Status.ENCRYPTED
-        )
+        entry = Text(text=encrypted_text, rot_type=rot_type, status=Status.ENCRYPTED)
         self._buffer.add(entry)
         return entry
 
@@ -28,11 +25,7 @@ class Facade:
         cipher = CipherFactory.create_cipher(rot_type)
         decrypted_text = cipher.decrypt(text)
 
-        entry = Text(
-            text=decrypted_text,
-            rot_type=rot_type,
-            status=Status.DECRYPTED
-        )
+        entry = Text(text=decrypted_text, rot_type=rot_type, status=Status.DECRYPTED)
         self._buffer.add(entry)
         return entry
 
