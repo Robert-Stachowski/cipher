@@ -7,6 +7,9 @@
 <br>
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Ruff](https://img.shields.io/badge/Ruff-linted%20%26%20formatted-D7FF64?style=for-the-badge&logo=ruff&logoColor=black)](https://docs.astral.sh/ruff/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-FAB040?style=for-the-badge&logo=pre-commit&logoColor=black)](https://pre-commit.com/)
+[![Tests](https://img.shields.io/badge/pytest-54%20passing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?style=for-the-badge&logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
 
 <br>
@@ -37,12 +40,12 @@ But the ciphers are not the point. **The point is *how* it's built.** This proje
 |---|---|
 | 🧱 **Layered architecture** | Strict one-directional dependency flow — the CLI never touches ciphers or files directly. |
 | 🎭 **Design patterns** | **Facade** + **Factory Method / Abstract Factory** applied where they actually earn their keep. |
-| 🧰 **No `if/elif` dispatch** | Command routing via Python **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
+| 🧰 **No `if/elif` dispatch** | Command routing via a **dispatch table** — adding a menu option is one dictionary entry, not another branch. |
 | 🧬 **Typed domain model** | The encoded text is an immutable `@dataclass` with `Enum`-backed fields. |
 | 💾 **Robust file I/O** | JSON read/write with **append** semantics and explicit, custom exception handling. |
-| 🚧 **Tests — final step** | A unit-test suite for ciphers, factory, buffer, file handler and facade is the project's closing milestone *(planned — not started)*. |
-| 🪝 **Quality gates** *(planned)* | `black`, `flake8` and `mypy` via **pre-commit** — a tooling milestone, not yet wired up. |
-| 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic. |
+| 🧪 **Tested** | **54 unit tests** covering ciphers, factory, buffer, domain model, file handler and facade — with `tmp_path` isolation and `create_autospec` mocks. |
+| 🪝 **Quality gates on every commit** | **Ruff** (lint + format), **isort**, **Bandit** (security) and commit-message validation, all wired through **pre-commit**. |
+| 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic — machine-enforced, not just promised. |
 
 ---
 
@@ -52,7 +55,7 @@ The golden rule: **dependencies point in one direction only.** The user interfac
 
 ```mermaid
 flowchart TD
-    A["main.py<br/><i>thin entry point</i>"] --> B["Manager<br/><i>main loop · match/case dispatch</i>"]
+    A["main.py<br/><i>thin entry point</i>"] --> B["Manager<br/><i>main loop · dispatch table</i>"]
     B --> M["Menu<br/><i>renders options · reads input</i>"]
     B --> F["Facade<br/><i>high-level API</i>"]
     F --> C["CipherFactory<br/><i>builds ROT13 / ROT47</i>"]
@@ -68,14 +71,17 @@ flowchart TD
     style C fill:#9e6a03,color:#fff
 ```
 
+That single rule is what makes the test suite cheap to write: because `Facade` receives its `Buffer` and `FileHandler` through the constructor, a test can hand it an autospec double and assert on the interaction — no monkey-patching, no global state, no touching the disk.
+
 #### Design patterns, and *why*
 
 | Pattern | Where | Why it earns its place |
 |---|---|---|
 | **Facade** | `Facade` | Gives the CLI a single, simple surface (`encrypt`, `decrypt`, `save`, `load`) and hides the wiring between ciphers, buffer and storage. Swap a subsystem → the CLI doesn't change. |
 | **Factory Method / Abstract Factory** | `CipherFactory` | Decouples *"which cipher"* from *"how it's built"*. Adding ROT-anything becomes one new class + one registry entry — **no caller touches a conditional**. |
-| **Dataclass (domain model)** | `Text` | The encoded unit (`text`, `rot_type`, `status`) is a typed, self-validating value object — not a loose dict floating through the codebase. |
-| **Structural pattern matching** | `Manager` | Menu routing reads as a clean dispatch table instead of an `if/elif` ladder. |
+| **Dataclass (domain model)** | `Text` | The encoded unit (`text`, `rot_type`, `status`) is a frozen, typed value object — not a loose dict floating through the codebase. |
+| **Dependency injection** | `Manager`, `Facade` | Collaborators arrive through the constructor, never built inside. That is precisely what makes the CLI and the facade testable without a terminal or a filesystem. |
+| **Dispatch table** | `Manager` | Menu routing reads as a `dict` of handlers instead of an `if/elif` ladder — adding an option is one entry, not one more branch. |
 
 ---
 
@@ -85,16 +91,16 @@ flowchart TD
 Cipher/
 ├── main.py                     # single entry point  →  python main.py
 ├── README.md
-├── pyproject.toml              # ⏳ planned — metadata + black / flake8 / mypy config
-├── .pre-commit-config.yaml     # ⏳ planned
+├── pyproject.toml              # tool configuration (Bandit)
+├── .pre-commit-config.yaml     # 🪝 quality gates
 ├── .gitignore
 │
-├── cipher/                     # application package
+├── cipher/                     # application package — zero runtime dependencies
 │   ├── facade.py               # 🎭 Facade — high-level API (encrypt/decrypt/save/load)
 │   ├── exceptions.py           # custom exceptions (FileHandlerError, …)
 │   │
 │   ├── models/
-│   │   └── text.py             # 🧬 Text dataclass + RotType / Status enums
+│   │   └── text.py             # 🧬 frozen Text dataclass + RotType / Status enums
 │   │
 │   ├── ciphers/
 │   │   ├── base.py             # abstract Cipher (ABC)
@@ -110,10 +116,19 @@ Cipher/
 │   │
 │   └── cli/
 │       ├── menu.py             # 🖥️ Menu — presentation & input
-│       └── manager.py          # 🎮 Manager — main loop + match/case dispatch
+│       └── manager.py          # 🎮 Manager — main loop + dispatch table
 │
-└── tests/                      # ⏳ planned — unit test suite (final milestone)
-    └── __init__.py             # only the package placeholder exists today
+└── tests/                      # 🧪 pytest suite — mirrors the package layout
+    ├── test_facade.py          # 8 tests · create_autospec doubles
+    ├── ciphers/
+    │   ├── test_rot13.py       # 12 tests · parametrised edge cases
+    │   ├── test_rot47.py       #  8 tests
+    │   └── test_factory.py     #  4 tests
+    ├── core/test_buffer.py     #  3 tests · guards the defensive copy
+    ├── models/test_text.py     #  2 tests · immutability contract
+    ├── storage/
+    │   └── test_file_handler.py #  14 tests · tmp_path isolation
+    └── cli/test_manager.py     #  3 tests · fake Menu / Facade  ⏳ in progress
 ```
 
 > 💡 The file-storage package is intentionally named `storage`, **not** `io`, to avoid shadowing Python's standard-library `io` module — a small detail that signals attention to the things that bite teams later.
@@ -131,11 +146,17 @@ cd Cipher
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# 3 · (optional) dev tooling — ⏳ planned, not in the repo yet:
-#   pip install -e ".[dev]" && pre-commit install
-
-# 4 · run
+# 3 · run — no dependencies required, the app is pure standard library
 python main.py
+```
+
+#### Contributing / dev setup
+
+```bash
+pip install pytest pytest-mock pre-commit
+
+pre-commit install                          # lint + format gate
+pre-commit install --hook-type commit-msg   # Conventional Commits gate
 ```
 
 ---
@@ -178,16 +199,44 @@ Nazwa pliku: portfolio
 ### ✅ Testing & quality
 
 ```bash
-pytest                 # unit tests — ⏳ planned, not configured yet (final milestone)
-black .                # format
-flake8                 # lint
-mypy cipher            # static type check
-pre-commit run --all   # everything the commit hook runs
+pytest -q                  # 54 unit tests
+ruff check .               # lint
+ruff format .              # format
+pre-commit run --all-files # everything the commit hooks run
 ```
 
-> 🚧 The application itself is complete. The **unit-test suite and the tooling above (`black`/`flake8`/`mypy`/`pre-commit`) are the final milestone and aren't set up yet**, so the commands above won't run against the repo as-is.
+#### How the tests are written
 
-No automated gates run in the repo yet. Once the tooling milestone lands, every commit will be gated by **pre-commit** (`black` + `flake8`, with `mypy` in CI). For now, the discipline on show lives in the **architecture** and the **commit history**.
+The suite is small on purpose — every test earns its place by pinning down a decision that could plausibly regress:
+
+- **`create_autospec(FileHandler, instance=True)`** for the facade — a double built from the *real* signature, so renaming a method or changing its arity breaks the test instead of silently passing. A hand-written fake was deliberately [replaced with one](https://github.com/RobertStachowski/Cipher/commits/main/tests/test_facade.py) for exactly this reason.
+- **`tmp_path`** for every filesystem test — real files, real `json` round-trips, zero pollution outside the temp directory.
+- **`pytest.mark.parametrize`** for cipher edge cases: wrap-around at `z`/`Z`, non-letters left untouched, empty input, full ROT47 printable range.
+- **Injected fakes** for the CLI, so `Manager`'s routing is verified without ever touching `stdin`.
+- **Error paths are first-class:** saving onto a directory, malformed JSON, a JSON object where a list was expected, and unknown enum values each have their own test asserting `FileHandlerError`.
+
+#### The quality gates
+
+Every commit passes through **pre-commit** before it lands:
+
+| Hook | What it guards |
+|---|---|
+| **`ruff-check`** | Linting — unused imports and variables, undefined names, real bugs. |
+| **`ruff-format`** | Formatting — one canonical style, so diffs are about logic, never whitespace. |
+| **`isort`** (black profile) | Import ordering: stdlib → third-party → local. |
+| **`bandit`** | Security scan — `eval`, hardcoded secrets, unsafe `subprocess` calls. Configured in `pyproject.toml` to skip the test suite. |
+| **`conventional-pre-commit`** | Rejects a commit message that isn't a valid Conventional Commit. |
+| **pre-commit-hooks** | Trailing whitespace, missing final newline, broken YAML/TOML/JSON, oversized files, unresolved merge conflicts, forgotten `breakpoint()`, and pytest test-file naming. |
+
+#### 🛠️ Why Ruff instead of `flake8` + `black`
+
+The original plan called for `flake8`. It was replaced by [**Ruff**](https://docs.astral.sh/ruff/) after a closer look — and the reasoning is worth stating, because tool choices are engineering decisions like any other:
+
+- **One tool instead of five.** `flake8` is *only* a linter, and a thin one; a realistic setup pulls in `pycodestyle`, `pyflakes`, `flake8-bugbear`, `pyupgrade`, plus `black` for formatting and `isort` for imports. Ruff reimplements **800+ rules** from that ecosystem *and* ships a black-compatible formatter — one dependency, one config block, one mental model.
+- **Speed you can feel.** Written in Rust, it lints this repository in single-digit milliseconds. That matters more than it sounds: a gate fast enough to run on every save is a gate that actually gets run.
+- **It's where the ecosystem went.** Ruff is now the default choice in a large share of modern Python projects — knowing it is closer to current practice than knowing `flake8`.
+
+The honest trade-off: `flake8`'s plugin ecosystem still has niche checks Ruff hasn't ported, and Ruff moves fast enough that its rule set is a moving target. For a project this size, neither outweighs collapsing five tools into one.
 
 ---
 
@@ -195,10 +244,11 @@ No automated gates run in the repo yet. Once the tooling milestone lands, every 
 
 This repo follows the same disciplines I'd bring to a production codebase:
 
-- **PEP 8** style — the code follows it; automated enforcement by `black` + `flake8` is a planned milestone.
-- **Full type hints** on every module. Docstrings on public classes and methods. (`mypy` verification is part of the planned tooling.)
+- **PEP 8 style**, enforced automatically by `ruff format` and `ruff check` — not by good intentions.
+- **Full type hints** on every module, including `ClassVar` annotations on class-level registries. Docstrings on public classes and methods.
 - **GitHub Flow** — short-lived feature branches, reviewed before merge.
-- **[Conventional Commits](https://www.conventionalcommits.org/)** with scopes:
+- **Atomic commits** — a formatting sweep and a behaviour change never share a commit, so `git log` stays reviewable.
+- **[Conventional Commits](https://www.conventionalcommits.org/)** with scopes, validated by a `commit-msg` hook:
 
   | ✅ Good | ⭐ Best |
   |---|---|
@@ -212,9 +262,22 @@ This repo follows the same disciplines I'd bring to a production codebase:
 
 ### 🧰 Tech stack
 
-**Used —** Python 3.11+ · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **zero runtime dependencies (standard library only)**.
+**Runtime —** Python 3.11+ · `dataclasses` · `enum` (`StrEnum`) · `abc` · `json` · `typing` (`ClassVar`, `Callable`) · **zero runtime dependencies (standard library only)**.
 
-**Planned tooling —** pytest · black · flake8 · mypy · pre-commit · GitHub Actions (CI).
+**Development —** pytest · pytest-mock · Ruff · isort · Bandit · pre-commit.
+
+---
+
+### 🗺️ Roadmap
+
+| | Status |
+|---|---|
+| Application — architecture, patterns, CLI | ✅ Done |
+| Unit tests — ciphers, factory, buffer, model, storage, facade | ✅ Done · 54 tests |
+| Quality gates — Ruff, isort, Bandit, pre-commit, commit-msg validation | ✅ Done |
+| Unit tests — `Manager` and `Menu` (CLI layer) | ⏳ In progress |
+| `mypy` static type checking | 📋 Planned |
+| GitHub Actions CI | 📋 Planned |
 
 ---
 
@@ -246,12 +309,12 @@ Ale szyfry nie są tu najważniejsze. **Najważniejsze jest *jak* to zostało zb
 |---|---|
 | 🧱 **Architektura warstwowa** | Ścisły, jednokierunkowy przepływ zależności — CLI nigdy nie dotyka bezpośrednio szyfrów ani plików. |
 | 🎭 **Wzorce projektowe** | **Facade** + **Factory Method / Abstract Factory**, użyte tam, gdzie naprawdę się opłacają. |
-| 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **structural pattern matching** (`match`/`case`, [PEP 636](https://peps.python.org/pep-0636/)). |
+| 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **tablicę dyspozytorską** — dodanie opcji w menu to jeden wpis w słowniku, a nie kolejne rozgałęzienie. |
 | 🧬 **Typowany model domeny** | Zakodowany tekst to niemutowalny `@dataclass` z polami opartymi o `Enum`. |
 | 💾 **Solidne I/O plików** | Odczyt/zapis JSON z semantyką **append** i jawną, własną obsługą wyjątków. |
-| 🚧 **Testy — ostatni etap** | Zestaw testów jednostkowych szyfrów, fabryki, bufora, file handlera i fasady to domykający kamień milowy projektu *(planowane — nierozpoczęte)*. |
-| 🪝 **Bramki jakości** *(planowane)* | `black`, `flake8` i `mypy` przez **pre-commit** — etap tooling, jeszcze nie podpięty. |
-| 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe. |
+| 🧪 **Otestowane** | **54 testy jednostkowe** szyfrów, fabryki, bufora, modelu domeny, file handlera i fasady — z izolacją przez `tmp_path` i mockami `create_autospec`. |
+| 🪝 **Bramki jakości na każdym commicie** | **Ruff** (lint + format), **isort**, **Bandit** (bezpieczeństwo) i walidacja treści commita — wszystko spięte przez **pre-commit**. |
+| 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe — wymuszane maszynowo, nie deklaratywnie. |
 
 ---
 
@@ -261,7 +324,7 @@ Złota zasada: **zależności wskazują tylko w jedną stronę.** Interfejs uży
 
 ```mermaid
 flowchart TD
-    A["main.py<br/><i>cienki punkt wejścia</i>"] --> B["Manager<br/><i>pętla główna · dispatch match/case</i>"]
+    A["main.py<br/><i>cienki punkt wejścia</i>"] --> B["Manager<br/><i>pętla główna · tablica dyspozytorska</i>"]
     B --> M["Menu<br/><i>renderuje opcje · czyta input</i>"]
     B --> F["Facade<br/><i>wysokopoziomowe API</i>"]
     F --> C["CipherFactory<br/><i>tworzy ROT13 / ROT47</i>"]
@@ -277,14 +340,17 @@ flowchart TD
     style C fill:#9e6a03,color:#fff
 ```
 
+Ta jedna zasada sprawia, że testy pisze się tanio: skoro `Facade` dostaje `Buffer` i `FileHandler` przez konstruktor, test może podstawić mu autospec-owego sobowtóra i sprawdzić interakcję — bez monkey-patchingu, bez globalnego stanu, bez dotykania dysku.
+
 #### Wzorce projektowe i *dlaczego*
 
 | Wzorzec | Gdzie | Dlaczego ma sens |
 |---|---|---|
 | **Facade** | `Facade` | Daje CLI jedną, prostą powierzchnię (`encrypt`, `decrypt`, `save`, `load`) i ukrywa połączenia między szyframi, buforem i pamięcią. Wymiana podsystemu → CLI się nie zmienia. |
 | **Factory Method / Abstract Factory** | `CipherFactory` | Odsprzęga *„który szyfr"* od *„jak go zbudować"*. Dodanie kolejnego ROT-a to jedna nowa klasa + wpis w rejestrze — **żaden kod wołający nie dotyka warunku**. |
-| **Dataclass (model domeny)** | `Text` | Jednostka zakodowana (`text`, `rot_type`, `status`) to typowany obiekt-wartość, a nie luźny `dict` krążący po kodzie. |
-| **Structural pattern matching** | `Manager` | Routing menu czyta się jak czysta tablica dyspozytorska zamiast drabinki `if/elif`. |
+| **Dataclass (model domeny)** | `Text` | Jednostka zakodowana (`text`, `rot_type`, `status`) to zamrożony, typowany obiekt-wartość, a nie luźny `dict` krążący po kodzie. |
+| **Wstrzykiwanie zależności** | `Manager`, `Facade` | Współpracownicy przychodzą przez konstruktor, nigdy nie są tworzeni w środku. To właśnie dzięki temu CLI i fasadę da się testować bez terminala i bez systemu plików. |
+| **Tablica dyspozytorska** | `Manager` | Routing menu czyta się jak `dict` handlerów zamiast drabinki `if/elif` — dodanie opcji to jeden wpis, a nie kolejne rozgałęzienie. |
 
 ---
 
@@ -294,16 +360,16 @@ flowchart TD
 Cipher/
 ├── main.py                     # jedyny punkt wejścia  →  python main.py
 ├── README.md
-├── pyproject.toml              # ⏳ planowane — metadane + konfiguracja black / flake8 / mypy
-├── .pre-commit-config.yaml     # ⏳ planowane
+├── pyproject.toml              # konfiguracja narzędzi (Bandit)
+├── .pre-commit-config.yaml     # 🪝 bramki jakości
 ├── .gitignore
 │
-├── cipher/                     # pakiet aplikacji
+├── cipher/                     # pakiet aplikacji — zero zależności runtime
 │   ├── facade.py               # 🎭 Facade — wysokopoziomowe API (encrypt/decrypt/save/load)
 │   ├── exceptions.py           # własne wyjątki (FileHandlerError, …)
 │   │
 │   ├── models/
-│   │   └── text.py             # 🧬 dataclass Text + enumy RotType / Status
+│   │   └── text.py             # 🧬 zamrożony dataclass Text + enumy RotType / Status
 │   │
 │   ├── ciphers/
 │   │   ├── base.py             # abstrakcyjny Cipher (ABC)
@@ -319,10 +385,19 @@ Cipher/
 │   │
 │   └── cli/
 │       ├── menu.py             # 🖥️ Menu — prezentacja i input
-│       └── manager.py          # 🎮 Manager — pętla główna + dispatch match/case
+│       └── manager.py          # 🎮 Manager — pętla główna + tablica dyspozytorska
 │
-└── tests/                      # ⏳ planowane — testy jednostkowe (ostatni etap)
-    └── __init__.py             # dziś istnieje tylko placeholder pakietu
+└── tests/                      # 🧪 zestaw pytest — odbija strukturę pakietu
+    ├── test_facade.py          # 8 testów · sobowtóry create_autospec
+    ├── ciphers/
+    │   ├── test_rot13.py       # 12 testów · sparametryzowane przypadki brzegowe
+    │   ├── test_rot47.py       #  8 testów
+    │   └── test_factory.py     #  4 testy
+    ├── core/test_buffer.py     #  3 testy · pilnują kopii obronnej
+    ├── models/test_text.py     #  2 testy · kontrakt niemutowalności
+    ├── storage/
+    │   └── test_file_handler.py #  14 testów · izolacja przez tmp_path
+    └── cli/test_manager.py     #  3 testy · atrapy Menu / Facade  ⏳ w toku
 ```
 
 > 💡 Pakiet od plików nazwałem celowo `storage`, a **nie** `io`, żeby nie przykryć standardowego modułu `io` z biblioteki Pythona — drobiazg, który świadczy o uwadze do rzeczy, które potrafią ugryźć zespół później.
@@ -340,11 +415,17 @@ cd Cipher
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# 3 · (opcjonalnie) tooling deweloperski — ⏳ planowany, jeszcze nie ma go w repo:
-#   pip install -e ".[dev]" && pre-commit install
-
-# 4 · uruchom
+# 3 · uruchom — nie trzeba nic instalować, aplikacja to czysty stdlib
 python main.py
+```
+
+#### Środowisko deweloperskie
+
+```bash
+pip install pytest pytest-mock pre-commit
+
+pre-commit install                          # bramka lint + format
+pre-commit install --hook-type commit-msg   # bramka Conventional Commits
 ```
 
 ---
@@ -385,16 +466,44 @@ Nazwa pliku: portfolio
 ### ✅ Testy i jakość
 
 ```bash
-pytest                 # testy jednostkowe — ⏳ planowane, jeszcze nieskonfigurowane (ostatni etap)
-black .                # formatowanie
-flake8                 # linting
-mypy cipher            # statyczna kontrola typów
-pre-commit run --all   # wszystko, co odpala hook commitowy
+pytest -q                  # 54 testy jednostkowe
+ruff check .               # linting
+ruff format .              # formatowanie
+pre-commit run --all-files # wszystko, co odpalają hooki commitowe
 ```
 
-> 🚧 Sama aplikacja jest gotowa. **Zestaw testów oraz tooling powyżej (`black`/`flake8`/`mypy`/`pre-commit`) to ostatni etap i nie są jeszcze skonfigurowane**, więc powyższe komendy nie zadziałają na repo w obecnym stanie.
+#### Jak są napisane testy
 
-W repo nie działają jeszcze żadne automatyczne bramki. Gdy domknę etap tooling, każdy commit będzie pilnowany przez **pre-commit** (`black` + `flake8`, z `mypy` w CI). Na razie widoczna dyscyplina siedzi w **architekturze** i **historii commitów**.
+Zestaw jest celowo niewielki — każdy test zarabia na swoje miejsce, przybijając decyzję, która realnie mogłaby się zepsuć:
+
+- **`create_autospec(FileHandler, instance=True)`** dla fasady — sobowtór zbudowany z *prawdziwej* sygnatury, więc zmiana nazwy metody albo liczby argumentów wywala test, zamiast przejść po cichu. Ręcznie pisana atrapa została [świadomie nim zastąpiona](https://github.com/RobertStachowski/Cipher/commits/main/tests/test_facade.py) właśnie z tego powodu.
+- **`tmp_path`** w każdym teście plikowym — prawdziwe pliki, prawdziwy round-trip `json`, zero śmiecenia poza katalogiem tymczasowym.
+- **`pytest.mark.parametrize`** na przypadkach brzegowych szyfrów: zawijanie na `z`/`Z`, nie-litery zostawione bez zmian, pusty input, pełny zakres drukowalny ROT47.
+- **Wstrzyknięte atrapy** w CLI, dzięki czemu routing `Managera` jest weryfikowany bez dotykania `stdin`.
+- **Ścieżki błędów są pełnoprawnym obywatelem:** zapis na katalog, uszkodzony JSON, obiekt JSON tam, gdzie oczekiwana jest lista, i nieznana wartość enuma — każdy ma własny test sprawdzający `FileHandlerError`.
+
+#### Bramki jakości
+
+Każdy commit przechodzi przez **pre-commit**, zanim wyląduje w historii:
+
+| Hook | Czego pilnuje |
+|---|---|
+| **`ruff-check`** | Linting — nieużywane importy i zmienne, niezdefiniowane nazwy, realne błędy. |
+| **`ruff-format`** | Formatowanie — jeden kanoniczny styl, więc diffy są o logice, nigdy o białych znakach. |
+| **`isort`** (profil black) | Kolejność importów: stdlib → third-party → lokalne. |
+| **`bandit`** | Skan bezpieczeństwa — `eval`, zaszyte sekrety, niebezpieczne wywołania `subprocess`. Skonfigurowany w `pyproject.toml` tak, by pomijał testy. |
+| **`conventional-pre-commit`** | Odrzuca commit, którego treść nie jest poprawnym Conventional Commitem. |
+| pre-commit-hooks | Białe znaki na końcu linii, brak newline'a na końcu pliku, zepsute YAML/TOML/JSON, za duże pliki, nierozwiązane konflikty merge'a, zapomniany `breakpoint()` i nazewnictwo plików testowych. |
+
+#### 🛠️ Dlaczego Ruff zamiast `flake8` + `black`
+
+W pierwotnym planie był `flake8`. Po bliższym przyjrzeniu się zastąpił go [**Ruff**](https://docs.astral.sh/ruff/) — i warto tę decyzję nazwać, bo wybór narzędzi to decyzja inżynierska jak każda inna:
+
+- **Jedno narzędzie zamiast pięciu.** `flake8` jest *tylko* linterem, i to cienkim; realistyczny zestaw dokłada do niego `pycodestyle`, `pyflakes`, `flake8-bugbear`, `pyupgrade`, plus `black` do formatowania i `isort` do importów. Ruff reimplementuje **800+ reguł** z tego ekosystemu *i* ma własny, kompatybilny z blackiem formatter — jedna zależność, jeden blok konfiguracji, jeden model myślowy.
+- **Szybkość, którą się czuje.** Napisany w Ruście, lintuje to repozytorium w jednocyfrowej liczbie milisekund. To znaczy więcej, niż brzmi: bramka na tyle szybka, żeby odpalać ją przy każdym zapisie, to bramka, którą się realnie odpala.
+- **Tam poszedł ekosystem.** Ruff jest dziś domyślnym wyborem w dużej części nowoczesnych projektów pythonowych — jego znajomość jest bliżej aktualnej praktyki niż znajomość `flake8`.
+
+Uczciwy trade-off: ekosystem pluginów `flake8` wciąż ma niszowe kontrole, których Ruff nie przeportował, a sam Ruff rozwija się na tyle szybko, że jego zestaw reguł jest ruchomym celem. W projekcie tej wielkości żadne z tego nie przeważa nad zwinięciem pięciu narzędzi w jedno.
 
 ---
 
@@ -402,10 +511,11 @@ W repo nie działają jeszcze żadne automatyczne bramki. Gdy domknę etap tooli
 
 To repo trzyma się tych samych dyscyplin, które wniósłbym do kodu produkcyjnego:
 
-- Styl **PEP 8** — kod się go trzyma; automatyczne wymuszanie przez `black` + `flake8` to planowany etap.
-- **Pełne typowanie** w każdym module. Docstringi na publicznych klasach i metodach. (Weryfikacja `mypy` to część planowanego toolingu.)
+- **Styl PEP 8**, wymuszany automatycznie przez `ruff format` i `ruff check` — a nie przez dobre chęci.
+- **Pełne typowanie** w każdym module, łącznie z adnotacjami `ClassVar` na rejestrach klasowych. Docstringi na publicznych klasach i metodach.
 - **GitHub Flow** — krótkożyjące gałęzie feature'owe, recenzowane przed mergem.
-- **[Conventional Commits](https://www.conventionalcommits.org/)** ze scope'ami:
+- **Atomowe commity** — przelot formatujący i zmiana zachowania nigdy nie dzielą jednego commita, dzięki czemu `git log` da się czytać.
+- **[Conventional Commits](https://www.conventionalcommits.org/)** ze scope'ami, walidowane hookiem `commit-msg`:
 
   | ✅ Dobrze | ⭐ Najlepiej |
   |---|---|
@@ -419,9 +529,22 @@ To repo trzyma się tych samych dyscyplin, które wniósłbym do kodu produkcyjn
 
 ### 🧰 Stack technologiczny
 
-**Używane —** Python 3.11+ · `dataclasses` · `enum` · `abc` · `json` · structural pattern matching · **zero zależności runtime (tylko biblioteka standardowa)**.
+**Runtime —** Python 3.11+ · `dataclasses` · `enum` (`StrEnum`) · `abc` · `json` · `typing` (`ClassVar`, `Callable`) · **zero zależności runtime (tylko biblioteka standardowa)**.
 
-**Planowany tooling —** pytest · black · flake8 · mypy · pre-commit · GitHub Actions (CI).
+**Deweloperskie —** pytest · pytest-mock · Ruff · isort · Bandit · pre-commit.
+
+---
+
+### 🗺️ Plan rozwoju
+
+| | Status |
+|---|---|
+| Aplikacja — architektura, wzorce, CLI | ✅ Gotowe |
+| Testy jednostkowe — szyfry, fabryka, bufor, model, storage, fasada | ✅ Gotowe · 54 testy |
+| Bramki jakości — Ruff, isort, Bandit, pre-commit, walidacja commit-msg | ✅ Gotowe |
+| Testy jednostkowe — `Manager` i `Menu` (warstwa CLI) | ⏳ W toku |
+| Statyczna kontrola typów `mypy` | 📋 Planowane |
+| CI na GitHub Actions | 📋 Planowane |
 
 ---
 
