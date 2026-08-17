@@ -139,8 +139,8 @@ Cipher/
 
 ```bash
 # 1 · clone
-git clone https://github.com/RobertStachowski/Cipher.git
-cd Cipher
+git clone https://github.com/Robert-Stachowski/cipher.git
+cd cipher
 
 # 2 · create & activate a virtual environment
 python -m venv .venv
@@ -209,7 +209,7 @@ pre-commit run --all-files # everything the commit hooks run
 
 The suite is small on purpose — every test earns its place by pinning down a decision that could plausibly regress:
 
-- **`create_autospec(FileHandler, instance=True)`** for the facade — a double built from the *real* signature, so renaming a method or changing its arity breaks the test instead of silently passing. A hand-written fake was deliberately [replaced with one](https://github.com/RobertStachowski/Cipher/commits/main/tests/test_facade.py) for exactly this reason.
+- **`create_autospec(FileHandler, instance=True)`** for the facade — a double built from the *real* signature, so renaming a method or changing its arity breaks the test instead of silently passing. A hand-written fake was deliberately [replaced with one](https://github.com/Robert-Stachowski/cipher/commit/1912bcc37431187749d269e09bcda99265bec784) for exactly this reason.
 - **`tmp_path`** for every filesystem test — real files, real `json` round-trips, zero pollution outside the temp directory.
 - **`pytest.mark.parametrize`** for cipher edge cases: wrap-around at `z`/`Z`, non-letters left untouched, empty input, full ROT47 printable range.
 - **Injected fakes** for the CLI, so `Manager`'s routing is verified without ever touching `stdin`.
@@ -408,8 +408,8 @@ Cipher/
 
 ```bash
 # 1 · sklonuj
-git clone https://github.com/RobertStachowski/Cipher.git
-cd Cipher
+git clone https://github.com/Robert-Stachowski/cipher.git
+cd cipher
 
 # 2 · stwórz i aktywuj wirtualne środowisko
 python -m venv .venv
@@ -476,7 +476,7 @@ pre-commit run --all-files # wszystko, co odpalają hooki commitowe
 
 Zestaw jest celowo niewielki — każdy test zarabia na swoje miejsce, przybijając decyzję, która realnie mogłaby się zepsuć:
 
-- **`create_autospec(FileHandler, instance=True)`** dla fasady — sobowtór zbudowany z *prawdziwej* sygnatury, więc zmiana nazwy metody albo liczby argumentów wywala test, zamiast przejść po cichu. Ręcznie pisana atrapa została [świadomie nim zastąpiona](https://github.com/RobertStachowski/Cipher/commits/main/tests/test_facade.py) właśnie z tego powodu.
+- **`create_autospec(FileHandler, instance=True)`** dla fasady — sobowtór zbudowany z *prawdziwej* sygnatury, więc zmiana nazwy metody albo liczby argumentów wywala test, zamiast przejść po cichu. Ręcznie pisana atrapa została [świadomie nim zastąpiona](https://github.com/Robert-Stachowski/cipher/commit/1912bcc37431187749d269e09bcda99265bec784) właśnie z tego powodu.
 - **`tmp_path`** w każdym teście plikowym — prawdziwe pliki, prawdziwy round-trip `json`, zero śmiecenia poza katalogiem tymczasowym.
 - **`pytest.mark.parametrize`** na przypadkach brzegowych szyfrów: zawijanie na `z`/`Z`, nie-litery zostawione bez zmian, pusty input, pełny zakres drukowalny ROT47.
 - **Wstrzyknięte atrapy** w CLI, dzięki czemu routing `Managera` jest weryfikowany bez dotykania `stdin`.
