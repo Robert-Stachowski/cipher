@@ -199,11 +199,14 @@ Nazwa pliku: portfolio
 ### ✅ Testing & quality
 
 ```bash
-pytest -q                  # 54 unit tests
-ruff check .               # lint
-ruff format .              # format
-pre-commit run --all-files # everything the commit hooks run
+pytest -q                                # 54 unit tests
+pre-commit run --all-files               # every gate, across the repo
+pre-commit run ruff-check --all-files    # lint only
+pre-commit run ruff-format --all-files   # format only
+pre-commit run --files path/to/file.py   # gates on one file
 ```
+
+> ℹ️ Ruff, isort and Bandit are **not** installed into the virtual environment — **pre-commit** fetches each one at the revision pinned in `.pre-commit-config.yaml` and keeps it in its own isolated environment. That is the point of pinning: every machine and every CI run gets byte-identical tooling. Running them through `pre-commit` rather than as bare commands is what keeps that guarantee intact.
 
 #### How the tests are written
 
@@ -466,11 +469,14 @@ Nazwa pliku: portfolio
 ### ✅ Testy i jakość
 
 ```bash
-pytest -q                  # 54 testy jednostkowe
-ruff check .               # linting
-ruff format .              # formatowanie
-pre-commit run --all-files # wszystko, co odpalają hooki commitowe
+pytest -q                                # 54 testy jednostkowe
+pre-commit run --all-files               # wszystkie bramki, na całym repo
+pre-commit run ruff-check --all-files    # tylko linting
+pre-commit run ruff-format --all-files   # tylko formatowanie
+pre-commit run --files sciezka/plik.py   # bramki na jednym pliku
 ```
+
+> ℹ️ Ruff, isort i Bandit **nie są** instalowane do wirtualnego środowiska — **pre-commit** ściąga każde z nich w wersji przypiętej w `.pre-commit-config.yaml` i trzyma w osobnym, izolowanym środowisku. W tym właśnie sens przypinania: każda maszyna i każdy przebieg CI dostaje identyczne narzędzia. Uruchamianie ich przez `pre-commit`, a nie jako gołe komendy, jest tym, co tę gwarancję utrzymuje.
 
 #### Jak są napisane testy
 
