@@ -35,6 +35,14 @@ def test_save_invalid_json(tmp_path):
         handler.save(str(test_path), [test_obj_22])
 
 
+def test_save_missing_directory(tmp_path):
+    test_path = tmp_path / "brak_katalogu" / "test_save.json"
+    handler = FileHandler()
+
+    with pytest.raises(FileHandlerError):
+        handler.save(str(test_path), [])
+
+
 def test_correct_json_not_list(tmp_path):
     test_path = tmp_path / "test_not_list.json"
     test_content = '{"text": "blablabla", "rot_type": "rot13", "status": "encrypted"}'
