@@ -24,7 +24,9 @@ class FileHandler:
 
     def save(self, filename: str, entries: list[Text]) -> None:
         """Dopisuje wpisy do pliku JSON; tworzy plik, jeśli nie istnieje,
-        rzuca FileHandlerError w przypadku uszkodzonego pliku, oraz niepoprawnej struktury danych"""
+        rzuca FileHandlerError w przypadku uszkodzonego pliku, niepoprawnej struktury danych,
+        oraz w przypadku niepowodzenia zapisu danych"""
+
         old = self._load_raw_json(filename, missing_ok=True)
 
         if not isinstance(old, list):
@@ -38,12 +40,16 @@ class FileHandler:
 
         new_list = old + dict_entries
 
-        with open(filename, "w", encoding="utf-8") as file:
-            json.dump(new_list, file, ensure_ascii=False)
+        try:
+            with open(filename, "w", encoding="utf-8") as file:
+                json.dump(new_list, file, ensure_ascii=False)
+        except OSError as e:
+            raise FileHandlerError(f"Nie udało się zapisać pliku - '{filename}'") from e
 
     def read(self, filename: str) -> list[Text]:
         """Wczytuje wpisy z pliku JSON;
         rzuca FileHandlerError przy braku lub uszkodzeniu pliku oraz przy nieznanej wartości / braku klucza"""
+
         raw_json = self._load_raw_json(filename)
 
         if not isinstance(raw_json, list):
