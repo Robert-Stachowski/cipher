@@ -157,3 +157,13 @@ def test_file_handler_error_is_shown_as_message(menu, facade):
 
     menu.show_error.assert_called_once_with(f"Nie znaleziono pliku - '{filename}'")
     menu.show_success.assert_not_called()
+
+
+@pytest.mark.parametrize("type_of_error", [EOFError, KeyboardInterrupt])
+def test_interrupt_ends_session(menu, facade, type_of_error):
+    menu.read_choice.side_effect = type_of_error
+    manager = Manager(menu, facade)
+    manager.run()
+
+    assert menu.read_choice.call_count == 1
+    menu.show_info.assert_called_once_with("Przerwane przez użytkownika")
