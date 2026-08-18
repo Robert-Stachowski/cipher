@@ -73,5 +73,5 @@ class Menu:
         return input("Podaj tekst: ")
 
     def read_filename(self) -> str:
-        """Pyta o nazwę pliku (bez rozszerzenia)."""
+        """Pyta o nazwę pliku (z rozszerzeniem)."""
         return input("Nazwa pliku: ").strip()
