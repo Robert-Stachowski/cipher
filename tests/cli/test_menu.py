@@ -1,6 +1,7 @@
 import pytest
 
 from cipher.cli.menu import Menu
+from cipher.models.text import RotType, Status, Text
 
 
 @pytest.fixture
@@ -61,3 +62,44 @@ def test_show_info(menu, capsys):
     captured = capsys.readouterr()
 
     assert captured.out == "ℹ Pusta pamięć\n"
+
+
+def test_show_buffer(menu, capsys):
+    first = Text("fake_text", RotType.ROT13, Status.ENCRYPTED)
+    second = Text("fake_text_2", RotType.ROT47, Status.ENCRYPTED)
+    entries = [first, second]
+    menu.show_buffer(entries)
+    captured = capsys.readouterr()
+
+    assert (
+        captured.out == "\n"
+        "── Bufor (2) ─────────────────\n"
+        "  1. fake_text  rot13  encrypted\n"
+        "  2. fake_text_2  rot47  encrypted\n"
+        "\n"
+    )
+
+
+def test_show_buffer_empty(menu, capsys):
+    entries = []
+    menu.show_buffer(entries)
+    captured = capsys.readouterr()
+
+    assert captured.out == "\n── Bufor (0) ─────────────────\n\n"
+
+
+def test_show_main_menu(menu, capsys):
+    menu.show_main_menu()
+    captured = capsys.readouterr()
+
+    assert (
+        captured.out == "\n"
+        "======== CIPHER =========\n"
+        "\n"
+        "1 Szyfruj\n"
+        "2 Odszyfruj\n"
+        "3 Zapisz bufor do pliku\n"
+        "4 Wczytaj plik do bufora\n"
+        "5 Pokaż bufor\n"
+        "0 Wyjście\n"
+    )
