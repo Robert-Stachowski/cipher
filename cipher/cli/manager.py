@@ -73,14 +73,17 @@ class Manager:
             "5": self._handle_show_buffer,
             "0": self._handle_exit,
         }
-        while self._running:
-            self._menu.show_main_menu()
-            choice = self._menu.read_choice()
-            try:
-                handler = oper_map.get(choice)
-                if handler is None:
-                    self._menu.show_error("Niepoprawny wybór")
-                    continue
-                handler()
-            except FileHandlerError as e:
-                self._menu.show_error(str(e))
+        try:
+            while self._running:
+                self._menu.show_main_menu()
+                choice = self._menu.read_choice()
+                try:
+                    handler = oper_map.get(choice)
+                    if handler is None:
+                        self._menu.show_error("Niepoprawny wybór")
+                        continue
+                    handler()
+                except FileHandlerError as e:
+                    self._menu.show_error(str(e))
+        except (KeyboardInterrupt, EOFError):
+            self._menu.show_info("Przerwane przez użytkownika")
