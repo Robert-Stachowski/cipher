@@ -43,7 +43,7 @@ But the ciphers are not the point. **The point is *how* it's built.** This proje
 | 🧰 **No `if/elif` dispatch** | Command routing via a **dispatch table** — adding a menu option is one dictionary entry, not another branch. |
 | 🧬 **Typed domain model** | The encoded text is an immutable `@dataclass` with `Enum`-backed fields. |
 | 💾 **Robust file I/O** | JSON read/write with **append** semantics and explicit, custom exception handling. |
-| 🧪 **Tested** | **89 unit tests** covering every module — ciphers, factory, buffer, domain model, file handler, facade *and the whole CLI layer* — with `tmp_path` isolation, `create_autospec` doubles and a patched `stdin`. |
+| 🧪 **Tested** | **89 unit tests** covering every module — ciphers, factory, buffer, domain model, file handler, facade *and the whole CLI layer* — with `tmp_path` isolation, `create_autospec` doubles and a patched `builtins.input`. |
 | 🪝 **Quality gates on every commit** | **Ruff** (lint + format), **isort**, **Bandit** (security) and commit-message validation, all wired through **pre-commit**. |
 | 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic — machine-enforced, not just promised. |
 
@@ -130,7 +130,7 @@ Cipher/
     │   └── test_file_handler.py #  14 tests · tmp_path isolation
     └── cli/
         ├── test_manager.py     # 15 tests · autospec Menu / Facade doubles
-        └── test_menu.py        # 23 tests · patched stdin + capsys
+        └── test_menu.py        # 23 tests · patched builtins.input + capsys
 ```
 
 > 💡 The file-storage package is intentionally named `storage`, **not** `io`, to avoid shadowing Python's standard-library `io` module — a small detail that signals attention to the things that bite teams later.
@@ -318,7 +318,7 @@ Ale szyfry nie są tu najważniejsze. **Najważniejsze jest *jak* to zostało zb
 | 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **tablicę dyspozytorską** — dodanie opcji w menu to jeden wpis w słowniku, a nie kolejne rozgałęzienie. |
 | 🧬 **Typowany model domeny** | Zakodowany tekst to niemutowalny `@dataclass` z polami opartymi o `Enum`. |
 | 💾 **Solidne I/O plików** | Odczyt/zapis JSON z semantyką **append** i jawną, własną obsługą wyjątków. |
-| 🧪 **Otestowane** | **89 testów jednostkowych** pokrywających każdy moduł — szyfry, fabrykę, bufor, model domeny, file handler, fasadę *i całą warstwę CLI* — z izolacją przez `tmp_path`, sobowtórami `create_autospec` i podmienionym `stdin`. |
+| 🧪 **Otestowane** | **89 testów jednostkowych** pokrywających każdy moduł — szyfry, fabrykę, bufor, model domeny, file handler, fasadę *i całą warstwę CLI* — z izolacją przez `tmp_path`, sobowtórami `create_autospec` i podmienionym `builtins.input`. |
 | 🪝 **Bramki jakości na każdym commicie** | **Ruff** (lint + format), **isort**, **Bandit** (bezpieczeństwo) i walidacja treści commita — wszystko spięte przez **pre-commit**. |
 | 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe — wymuszane maszynowo, nie deklaratywnie. |
 
@@ -405,7 +405,7 @@ Cipher/
     │   └── test_file_handler.py #  14 testów · izolacja przez tmp_path
     └── cli/
         ├── test_manager.py     # 15 testów · sobowtóry autospec Menu / Facade
-        └── test_menu.py        # 23 testy · podmieniony stdin + capsys
+        └── test_menu.py        # 23 testy · podmieniony builtins.input + capsys
 ```
 
 > 💡 Pakiet od plików nazwałem celowo `storage`, a **nie** `io`, żeby nie przykryć standardowego modułu `io` z biblioteki Pythona — drobiazg, który świadczy o uwadze do rzeczy, które potrafią ugryźć zespół później.
