@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Ruff](https://img.shields.io/badge/Ruff-linted%20%26%20formatted-D7FF64?style=for-the-badge&logo=ruff&logoColor=black)](https://docs.astral.sh/ruff/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-FAB040?style=for-the-badge&logo=pre-commit&logoColor=black)](https://pre-commit.com/)
-[![Tests](https://img.shields.io/badge/pytest-54%20passing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Tests](https://img.shields.io/badge/pytest-89%20passing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?style=for-the-badge&logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
 
 <br>
@@ -43,7 +43,7 @@ But the ciphers are not the point. **The point is *how* it's built.** This proje
 | 🧰 **No `if/elif` dispatch** | Command routing via a **dispatch table** — adding a menu option is one dictionary entry, not another branch. |
 | 🧬 **Typed domain model** | The encoded text is an immutable `@dataclass` with `Enum`-backed fields. |
 | 💾 **Robust file I/O** | JSON read/write with **append** semantics and explicit, custom exception handling. |
-| 🧪 **Tested** | **54 unit tests** covering ciphers, factory, buffer, domain model, file handler and facade — with `tmp_path` isolation and `create_autospec` mocks. |
+| 🧪 **Tested** | **89 unit tests** covering every module — ciphers, factory, buffer, domain model, file handler, facade *and the whole CLI layer* — with `tmp_path` isolation, `create_autospec` doubles and a patched `stdin`. |
 | 🪝 **Quality gates on every commit** | **Ruff** (lint + format), **isort**, **Bandit** (security) and commit-message validation, all wired through **pre-commit**. |
 | 📜 **Clean history** | **GitHub Flow** + **Conventional Commits**, scoped and atomic — machine-enforced, not just promised. |
 
@@ -128,7 +128,9 @@ Cipher/
     ├── models/test_text.py     #  2 tests · immutability contract
     ├── storage/
     │   └── test_file_handler.py #  14 tests · tmp_path isolation
-    └── cli/test_manager.py     #  3 tests · fake Menu / Facade  ⏳ in progress
+    └── cli/
+        ├── test_manager.py     # 15 tests · autospec Menu / Facade doubles
+        └── test_menu.py        # 23 tests · patched stdin + capsys
 ```
 
 > 💡 The file-storage package is intentionally named `storage`, **not** `io`, to avoid shadowing Python's standard-library `io` module — a small detail that signals attention to the things that bite teams later.
@@ -199,7 +201,7 @@ Nazwa pliku: portfolio
 ### ✅ Testing & quality
 
 ```bash
-pytest -q                                # 54 unit tests
+pytest -q                                # 89 unit tests
 pre-commit run --all-files               # every gate, across the repo
 pre-commit run ruff-check --all-files    # lint only
 pre-commit run ruff-format --all-files   # format only
@@ -210,12 +212,13 @@ pre-commit run --files path/to/file.py   # gates on one file
 
 #### How the tests are written
 
-The suite is small on purpose — every test earns its place by pinning down a decision that could plausibly regress:
+Every test earns its place by pinning down a decision that could plausibly regress — none of them exists just to move a coverage number:
 
 - **`create_autospec(FileHandler, instance=True)`** for the facade — a double built from the *real* signature, so renaming a method or changing its arity breaks the test instead of silently passing. A hand-written fake was deliberately [replaced with one](https://github.com/Robert-Stachowski/cipher/commit/1912bcc37431187749d269e09bcda99265bec784) for exactly this reason.
 - **`tmp_path`** for every filesystem test — real files, real `json` round-trips, zero pollution outside the temp directory.
 - **`pytest.mark.parametrize`** for cipher edge cases: wrap-around at `z`/`Z`, non-letters left untouched, empty input, full ROT47 printable range.
-- **Injected fakes** for the CLI, so `Manager`'s routing is verified without ever touching `stdin`.
+- **Autospec doubles across the whole CLI layer:** `Manager` receives a `create_autospec(Menu)` and a `create_autospec(Facade)`, and the main loop is driven by `read_choice.side_effect` — dispatch, input validation and the `FileHandlerError` branch are all verified without a terminal.
+- **`mocker.patch("builtins.input")` + `capsys`** for `Menu` — every prompt is checked for whitespace trimming, and every rendered line (main menu, buffer listing, ✔ / ✖ / ℹ messages) is asserted character-for-character, so an accidental space in the UI fails the build.
 - **Error paths are first-class:** saving onto a directory, malformed JSON, a JSON object where a list was expected, and unknown enum values each have their own test asserting `FileHandlerError`.
 
 #### The quality gates
@@ -276,9 +279,9 @@ This repo follows the same disciplines I'd bring to a production codebase:
 | | Status |
 |---|---|
 | Application — architecture, patterns, CLI | ✅ Done |
-| Unit tests — ciphers, factory, buffer, model, storage, facade | ✅ Done · 54 tests |
+| Unit tests — ciphers, factory, buffer, model, storage, facade | ✅ Done · 51 tests |
+| Unit tests — `Manager` and `Menu` (CLI layer) | ✅ Done · 38 tests |
 | Quality gates — Ruff, isort, Bandit, pre-commit, commit-msg validation | ✅ Done |
-| Unit tests — `Manager` and `Menu` (CLI layer) | ⏳ In progress |
 | `mypy` static type checking | 📋 Planned |
 | GitHub Actions CI | 📋 Planned |
 
@@ -315,7 +318,7 @@ Ale szyfry nie są tu najważniejsze. **Najważniejsze jest *jak* to zostało zb
 | 🧰 **Bez dispatchu `if/elif`** | Routing komend przez **tablicę dyspozytorską** — dodanie opcji w menu to jeden wpis w słowniku, a nie kolejne rozgałęzienie. |
 | 🧬 **Typowany model domeny** | Zakodowany tekst to niemutowalny `@dataclass` z polami opartymi o `Enum`. |
 | 💾 **Solidne I/O plików** | Odczyt/zapis JSON z semantyką **append** i jawną, własną obsługą wyjątków. |
-| 🧪 **Otestowane** | **54 testy jednostkowe** szyfrów, fabryki, bufora, modelu domeny, file handlera i fasady — z izolacją przez `tmp_path` i mockami `create_autospec`. |
+| 🧪 **Otestowane** | **89 testów jednostkowych** pokrywających każdy moduł — szyfry, fabrykę, bufor, model domeny, file handler, fasadę *i całą warstwę CLI* — z izolacją przez `tmp_path`, sobowtórami `create_autospec` i podmienionym `stdin`. |
 | 🪝 **Bramki jakości na każdym commicie** | **Ruff** (lint + format), **isort**, **Bandit** (bezpieczeństwo) i walidacja treści commita — wszystko spięte przez **pre-commit**. |
 | 📜 **Czysta historia** | **GitHub Flow** + **Conventional Commits**, scope'owane i atomowe — wymuszane maszynowo, nie deklaratywnie. |
 
@@ -400,7 +403,9 @@ Cipher/
     ├── models/test_text.py     #  2 testy · kontrakt niemutowalności
     ├── storage/
     │   └── test_file_handler.py #  14 testów · izolacja przez tmp_path
-    └── cli/test_manager.py     #  3 testy · atrapy Menu / Facade  ⏳ w toku
+    └── cli/
+        ├── test_manager.py     # 15 testów · sobowtóry autospec Menu / Facade
+        └── test_menu.py        # 23 testy · podmieniony stdin + capsys
 ```
 
 > 💡 Pakiet od plików nazwałem celowo `storage`, a **nie** `io`, żeby nie przykryć standardowego modułu `io` z biblioteki Pythona — drobiazg, który świadczy o uwadze do rzeczy, które potrafią ugryźć zespół później.
@@ -469,7 +474,7 @@ Nazwa pliku: portfolio
 ### ✅ Testy i jakość
 
 ```bash
-pytest -q                                # 54 testy jednostkowe
+pytest -q                                # 89 testów jednostkowych
 pre-commit run --all-files               # wszystkie bramki, na całym repo
 pre-commit run ruff-check --all-files    # tylko linting
 pre-commit run ruff-format --all-files   # tylko formatowanie
@@ -480,12 +485,13 @@ pre-commit run --files sciezka/plik.py   # bramki na jednym pliku
 
 #### Jak są napisane testy
 
-Zestaw jest celowo niewielki — każdy test zarabia na swoje miejsce, przybijając decyzję, która realnie mogłaby się zepsuć:
+Każdy test zarabia na swoje miejsce, przybijając decyzję, która realnie mogłaby się zepsuć — żaden nie istnieje tylko po to, żeby podbić liczbę pokrycia:
 
 - **`create_autospec(FileHandler, instance=True)`** dla fasady — sobowtór zbudowany z *prawdziwej* sygnatury, więc zmiana nazwy metody albo liczby argumentów wywala test, zamiast przejść po cichu. Ręcznie pisana atrapa została [świadomie nim zastąpiona](https://github.com/Robert-Stachowski/cipher/commit/1912bcc37431187749d269e09bcda99265bec784) właśnie z tego powodu.
 - **`tmp_path`** w każdym teście plikowym — prawdziwe pliki, prawdziwy round-trip `json`, zero śmiecenia poza katalogiem tymczasowym.
 - **`pytest.mark.parametrize`** na przypadkach brzegowych szyfrów: zawijanie na `z`/`Z`, nie-litery zostawione bez zmian, pusty input, pełny zakres drukowalny ROT47.
-- **Wstrzyknięte atrapy** w CLI, dzięki czemu routing `Managera` jest weryfikowany bez dotykania `stdin`.
+- **Sobowtóry autospec na całej warstwie CLI:** `Manager` dostaje `create_autospec(Menu)` i `create_autospec(Facade)`, a pętla główna jest sterowana przez `read_choice.side_effect` — routing, walidacja wejścia i gałąź `FileHandlerError` są sprawdzone bez terminala.
+- **`mocker.patch("builtins.input")` + `capsys`** dla `Menu` — każdy prompt jest sprawdzany pod kątem obcinania białych znaków, a każda renderowana linia (menu główne, listing bufora, komunikaty ✔ / ✖ / ℹ) porównywana znak po znaku, więc przypadkowa spacja w UI wywala build.
 - **Ścieżki błędów są pełnoprawnym obywatelem:** zapis na katalog, uszkodzony JSON, obiekt JSON tam, gdzie oczekiwana jest lista, i nieznana wartość enuma — każdy ma własny test sprawdzający `FileHandlerError`.
 
 #### Bramki jakości
@@ -546,9 +552,9 @@ To repo trzyma się tych samych dyscyplin, które wniósłbym do kodu produkcyjn
 | | Status |
 |---|---|
 | Aplikacja — architektura, wzorce, CLI | ✅ Gotowe |
-| Testy jednostkowe — szyfry, fabryka, bufor, model, storage, fasada | ✅ Gotowe · 54 testy |
+| Testy jednostkowe — szyfry, fabryka, bufor, model, storage, fasada | ✅ Gotowe · 51 testów |
+| Testy jednostkowe — `Manager` i `Menu` (warstwa CLI) | ✅ Gotowe · 38 testów |
 | Bramki jakości — Ruff, isort, Bandit, pre-commit, walidacja commit-msg | ✅ Gotowe |
-| Testy jednostkowe — `Manager` i `Menu` (warstwa CLI) | ⏳ W toku |
 | Statyczna kontrola typów `mypy` | 📋 Planowane |
 | CI na GitHub Actions | 📋 Planowane |
 
