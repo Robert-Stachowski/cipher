@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import asdict
+from typing import Any
 
 from ..exceptions import FileHandlerError
 from ..models.text import RotType, Status, Text
@@ -9,7 +10,7 @@ from ..models.text import RotType, Status, Text
 
 class FileHandler:
     @staticmethod
-    def _load_raw_json(filename: str, missing_ok: bool = False) -> list | dict:
+    def _load_raw_json(filename: str, missing_ok: bool = False) -> Any:
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 return json.load(file)
@@ -45,6 +46,10 @@ class FileHandler:
                 json.dump(new_list, file, ensure_ascii=False)
         except OSError as e:
             raise FileHandlerError(f"Nie udało się zapisać pliku - '{filename}'") from e
+        except (TypeError, ValueError) as e:
+            raise FileHandlerError(
+                f"Dane nie mogą zostać zapisane jako JSON: {e}"
+            ) from e
 
     def read(self, filename: str) -> list[Text]:
         """Wczytuje wpisy z pliku JSON;
