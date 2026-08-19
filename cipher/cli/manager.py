@@ -87,7 +87,8 @@ class Manager:
                     self._menu.show_error(str(e))
         except (KeyboardInterrupt, EOFError):
             self._menu.show_info("Przerwane przez użytkownika")
-        # dodatkowe zabezpieczenie:
-        # nieprzewidziany błąd kończy sesję zamiast wyświetlić traceback
-        except Exception as e:  # noqa: BLE001
+        # dodatkowe zabezpieczenie: nieprzewidziany błąd kończy sesję —
+        # użytkownik dostaje komunikat, traceback trafia do error.log w main()
+        except Exception as e:
             self._menu.show_error(f"Nieoczekiwany błąd: {e!r}")
+            raise
